@@ -2,7 +2,12 @@ import { useAuth } from "@/containers/AuthUserContainer";
 import { FirebaseError } from "firebase/app";
 import { useRouter } from "next/router";
 import { useForm, SubmitHandler } from "react-hook-form";
-import { Inputs, Errors } from "./auth.types";
+import { FirebaseErrorCodes } from "./auth.types";
+
+type Inputs = {
+  email: string;
+  password: string;
+};
 
 export const SignIn = () => {
   const {
@@ -23,11 +28,11 @@ export const SignIn = () => {
     } catch (error) {
       const { code } = error as FirebaseError;
 
-      if (code === Errors.EMAIL_NOT_FOUND) {
+      if (code === FirebaseErrorCodes.EMAIL_NOT_FOUND) {
         setError("email", { message: code });
         return;
       }
-      if (code === Errors.INVALID_PASSWORD) {
+      if (code === FirebaseErrorCodes.INVALID_PASSWORD) {
         setError("password", { message: code });
         return;
       }
