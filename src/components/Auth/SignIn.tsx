@@ -1,4 +1,5 @@
 import { useAuth } from "@/containers/AuthUserContainer";
+import { FirebaseError } from "firebase/app";
 import { useRouter } from "next/router";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { Inputs, Errors } from "./auth.types";
@@ -15,27 +16,23 @@ export const SignIn = () => {
 
   const { signInEmailAndPassword, admin } = useAuth();
 
-  const onSubmit = handleSubmit(({ email, password }) => {
-    signInEmailAndPassword(email, password)
-      .then(() => {
-        router.push("/");
-      })
-      .then(() => {
-        console.log(admin);
-      })
-      .catch((error) => {
-        const { code } = error;
+  const onSubmit = handleSubmit(async ({ email, password }) => {
+    try {
+      await signInEmailAndPassword(email, password);
+      router.push("/");
+    } catch (error) {
+      const { code } = error as FirebaseError;
 
-        if (code === Errors.EMAIL_NOT_FOUND) {
-          setError("email", { message: code });
-          return;
-        }
-        if (code === Errors.INVALID_PASSWORD) {
-          setError("password", { message: code });
-          return;
-        }
-        setError("root", { message: code });
-      });
+      if (code === Errors.EMAIL_NOT_FOUND) {
+        setError("email", { message: code });
+        return;
+      }
+      if (code === Errors.INVALID_PASSWORD) {
+        setError("password", { message: code });
+        return;
+      }
+      setError("root", { message: code });
+    }
   });
 
   return (

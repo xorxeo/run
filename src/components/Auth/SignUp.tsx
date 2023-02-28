@@ -1,5 +1,6 @@
 // import "Auth.module.css"
 import { useAuth } from "@/containers/AuthUserContainer";
+import { FirebaseError } from "firebase/app";
 import { useRouter } from "next/router";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { Inputs, Errors } from "./auth.types";
@@ -16,27 +17,28 @@ export const SignUp = () => {
 
   const { createUserEmailAndPassword } = useAuth();
 
-  const onSubmit = handleSubmit(({ email, password }) => {
-    createUserEmailAndPassword(email, password)
-      .then((authUser) => {
-        router.push("/");
-      })
-      .catch((error) => {
-        const { code } = error;
+  const onSubmit = handleSubmit(async ({ email, password }) => {
 
-        if (code === Errors.WEAK_PASSWORD) {
-          setError("password", { message: code });
-          return;
-        }
-        if (code === Errors.INVALID_EMAIL) {
-          setError("email", { message: code });
-          return;
-        }
-        if (code === Errors.EMAIL_EXISTS) {
-          setError("email", { message: code });
-          return;
-        }
-      });
+    try {
+      await createUserEmailAndPassword(email, password);
+      router.push("/");
+    } catch (error) {
+      
+      const { code } = error as FirebaseError;
+
+      if (code === Errors.WEAK_PASSWORD) {
+        setError("password", { message: code });
+        return;
+      }
+      if (code === Errors.INVALID_EMAIL) {
+        setError("email", { message: code });
+        return;
+      }
+      if (code === Errors.EMAIL_EXISTS) {
+        setError("email", { message: code });
+        return;
+      }
+    }
   });
 
   return (
