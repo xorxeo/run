@@ -6,7 +6,12 @@ import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { FirebaseErrorCodes } from "./auth.types";
+<<<<<<< HEAD
 import { useAuth } from "@/containers/AuthUserContainer";
+=======
+import * as z from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+>>>>>>> c3d9d77 (add zod vakidation in signup/signin forms)
 
 type Inputs = {
   email: string;
