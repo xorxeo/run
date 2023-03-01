@@ -1,13 +1,22 @@
-import { useAuth } from "@/containers/AuthUserContainer";
-import { FirebaseError } from "firebase/app";
 import { useRouter } from "next/router";
-import { useForm, SubmitHandler } from "react-hook-form";
+import { FirebaseError } from "firebase/app";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+
 import { FirebaseErrorCodes } from "./auth.types";
+import { useAuth } from "@/containers/AuthUserContainer";
 
 type Inputs = {
   email: string;
   password: string;
 };
+
+const schema = z.object({
+  email: z.string().email({ message: "invalid email address" }),
+  password: z.string().min(6, { message: "required min 6 symbols" }),
+});
+
 
 export const SignIn = () => {
   const {
@@ -15,7 +24,7 @@ export const SignIn = () => {
     handleSubmit,
     formState: { errors },
     setError,
-  } = useForm<Inputs>();
+  } = useForm<Inputs>({ resolver: zodResolver(schema) });
 
   const router = useRouter();
 
@@ -51,6 +60,7 @@ export const SignIn = () => {
           <div className="form-control font-light">
             <label className="label pl-0 h-12">
               <span className="label-text">Email address</span>
+              {errors.email && <div className="text-red-700">{errors.email.message}</div>}
             </label>
             <input
               type="email"
@@ -60,11 +70,11 @@ export const SignIn = () => {
               {...register("email", { required: true })}
             />
           </div>
-          {errors.email && <div>{errors.email.message}</div>}
 
           <div className="form-control font-light">
             <label className="label pl-0 h-12">
               <span className="label-text">Password</span>
+              {errors.password && <div className="text-red-700">{errors.password.message}</div>}
             </label>
             <input
               type="password"
@@ -73,7 +83,6 @@ export const SignIn = () => {
               className="input input-bordered "
               {...register("password", { required: true })}
             />
-            {errors.password && <div>{errors.password.message}</div>}
           </div>
 
           <div className="flex justify-between h-12">

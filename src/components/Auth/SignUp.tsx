@@ -1,14 +1,27 @@
 // import "Auth.module.css"
-import { useAuth } from "@/containers/AuthUserContainer";
-import { FirebaseError } from "firebase/app";
 import { useRouter } from "next/router";
-import { useForm, SubmitHandler } from "react-hook-form";
+import { FirebaseError } from "firebase/app";
+import { useForm} from "react-hook-form";
+import * as z from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+
 import { FirebaseErrorCodes } from "./auth.types";
+<<<<<<< HEAD
+import { useAuth } from "@/containers/AuthUserContainer";
+=======
+import * as z from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+>>>>>>> c3d9d77 (add zod vakidation in signup/signin forms)
 
 type Inputs = {
   email: string;
   password: string;
 };
+
+const schema = z.object({
+  email: z.string().email({ message: "invalid email address" }),
+  password: z.string().min(6, { message: "required min 6 symbols" }),
+});
 
 export const SignUp = () => {
   const {
@@ -16,7 +29,7 @@ export const SignUp = () => {
     handleSubmit,
     formState: { errors },
     setError,
-  } = useForm<Inputs>();
+  } = useForm<Inputs>({ resolver: zodResolver(schema) });
 
   const router = useRouter();
 
@@ -53,6 +66,7 @@ export const SignUp = () => {
           <div className="form-control font-light">
             <label className="label pl-0 h-12">
               <span className="label-text">Email address</span>
+              {errors.email && <div className="text-red-700">{errors.email.message}</div>}
             </label>
             <input
               type="email"
@@ -62,11 +76,11 @@ export const SignUp = () => {
               {...register("email", { required: true })}
             />
           </div>
-          {errors.email && <div>{errors.email.message}</div>}
 
           <div className="form-control font-light">
             <label className="label pl-0 h-12">
               <span className="label-text">Password</span>
+              {errors.password && <div className="text-red-700">{errors.password.message}</div>}
             </label>
             <input
               type="password"
@@ -76,7 +90,6 @@ export const SignUp = () => {
               {...register("password", { required: true })}
             />
           </div>
-          {errors.password && <div>{errors.password.message}</div>}
 
           <div className="flex justify-center h-12 rounded-lg mt-12 bg-[#FBBD23] font-normal hover:scale-105 transition-transform duration-200 ">
             <button>Sign up</button>
