@@ -1,10 +1,11 @@
-import { useAuth } from "@/containers/AuthUserContainer";
-import { FirebaseError } from "firebase/app";
 import { useRouter } from "next/router";
-import { useForm, SubmitHandler } from "react-hook-form";
-import { FirebaseErrorCodes } from "./auth.types";
+import { FirebaseError } from "firebase/app";
+import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+
+import { FirebaseErrorCodes } from "./auth.types";
+import { useAuth } from "@/containers/AuthUserContainer";
 
 type Inputs = {
   email: string;
