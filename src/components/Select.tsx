@@ -1,15 +1,8 @@
-import { UseFormRegister, FieldValues } from "react-hook-form";
-import { RegisterOptions, UseFormRegisterReturn } from "react-hook-form";
-import { UseFormReturn } from "react-hook-form";
 import { forwardRef } from "react"
-// type SelectType = {
-//   register: UseFormReturn["register"];
-//   options: number[];
-//   name: string;
-// };
+
 
 type Option = {
-  label: React.ReactNode;
+  label: string;
   value: string | number | string[];
 };
 

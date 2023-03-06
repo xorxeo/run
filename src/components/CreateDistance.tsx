@@ -54,8 +54,8 @@ const distanceFormSchema = z.object({
       required_error: "name is required",
       invalid_type_error: "name must be a string",
     })
-    //   .min(1)
-    .regex(/^[A-Za-z]/, { message: "Name must start with a letter" }),
+    .min(1),
+   
   cost: z.coerce.number({
     invalid_type_error: "Just numbers",
   }),
@@ -92,7 +92,6 @@ const distanceFormSchema = z.object({
       },
       { message: FilesErrorCodes.InvalidSize }
     )
-
     .refine(
       (files) => {
         InvalidMIMETypesFiles = [] as string[];
@@ -108,7 +107,7 @@ const distanceFormSchema = z.object({
 });
 
 export const CreateDistance = () => {
-  let dataObject = {} as DistanceFormValues;
+  let dataObject: DistanceFormValues;
 
   const {
     register,
@@ -123,19 +122,14 @@ export const CreateDistance = () => {
     // mode: "onBlur",
   });
 
-  if (Object.keys(errors).length > 0) {
-    console.log(errors);
-  }
-
   async function setData(rawData: DistanceFormValues) {
     const data = distanceFormSchema.parse(rawData);
-    console.log(data);
+  
   }
 
   const onSubmit: SubmitHandler<DistanceFormValues> = async (data) => {
     try {
       await setData(data);
-      console.log(data);
     } catch (error) {
       if (error instanceof Error) setError("root", { message: error.message });
     }
@@ -151,7 +145,7 @@ export const CreateDistance = () => {
             type="text"
             autoComplete="off"
             placeholder="distance name"
-            {...register("name", { required: "This is required." })}
+            {...register("name", { required: true })}
           />
 
           <div className="h-5">
@@ -348,6 +342,7 @@ export const CreateDistance = () => {
           <div>Upload photos</div>
           <input
             type="file"
+            accept="image/png, image/jpeg, image/webp"
             multiple
             {...register("images", { required: true })}
           />
