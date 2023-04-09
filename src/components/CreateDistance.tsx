@@ -3,16 +3,27 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
 import Select from "./Select";
+import { useDatabaseManageData } from "@/services/DatabaseManageData";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
+import { FirebaseContext } from "@/containers/FirebaseContainer";
+import Input from "./Input";
+import {
+  DataTransferContext,
+  useDataTransferContext,
+} from "@/containers/DataTransferContainer";
+import { useRouter } from "next/router";
+import { ValidationErrors } from "./ValidationError";
 
-enum FilesErrorCodes {
+enum ErrorCodes {
   InvalidSize = "InvalidSize",
   InvalidMIMETypes = ".jpg, .jpeg, .png and .webp files are accepted.",
+  RequiredField = "Field is required",
 }
 
 export type DistanceFormValues = {
   name: string;
   cost: number;
-  distanceLength: number;
+  distanceLength: string;
   linkToDownloadDistanceRoute: string;
   linkToViewDistanceRouteOnTheMap: string;
   refreshmentPoints: number;
@@ -26,7 +37,7 @@ export type DistanceFormValues = {
   startTime: string;
   timeLimit: string;
   totalElevation: string;
-  images: {};
+  // images?: [];
 };
 
 const FIVE_MB = 5_242_880;
@@ -40,31 +51,41 @@ const ACCEPTED_IMAGE_MIME_TYPES = [
 const URL_REG_EXP =
   /^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)$/;
 
-const UrlSchema = z
-  .string()
-  .regex(URL_REG_EXP)
-  .or(z.string().min(0));
+const TIME_REG_EXP = /(?: [01] | 2(?![4 - 9])){ 1}\d{ 1}: [0-5]{ 1}\d{ 1}/;
+
+const UrlSchema = z.string().regex(URL_REG_EXP).or(z.string().min(0));
 
 let invalidSizeFiles: string[] = [];
 let InvalidMIMETypesFiles: string[] = [];
 
-const distanceFormSchema = z.object({
-  name: z
-    .string({
-      required_error: "name is required",
-      invalid_type_error: "name must be a string",
+
+export const CreateDistance = () => {
+  const { db } = useContext(FirebaseContext);
+  const { addDataInDatabase } = useDatabaseManageData();
+  const [isEdit, setIsEdit] = useState<Boolean | null>(null);
+
+   const distanceFormSchema = z.object({
+  name: z.string().min(1, { message: ErrorCodes.RequiredField })
+      .refine(name => {
+        if (!isEdit && DTO.distancesState.some((distance) => distance.name === name)) {
+          return false;
+        } else {
+          return true;
+        }
+      }, {message: "Same name"}
+    )
+  ,
+  cost: z.coerce
+    .number({
+      invalid_type_error: "Just numbers",
     })
-    .min(1),
-   
-  cost: z.coerce.number({
-    invalid_type_error: "Just numbers",
-  }),
+    .min(1, { message: ErrorCodes.RequiredField }),
   distanceLength: z
     .string({
       required_error: "distanceLength is required",
       invalid_type_error: "distance length must be a string",
     })
-    .min(3),
+    .min(1, { message: ErrorCodes.RequiredField }),
   linkToDownloadDistanceRoute: UrlSchema,
   linkToViewDistanceRouteOnTheMap: UrlSchema,
   refreshmentPoints: z.coerce.number(),
@@ -78,68 +99,131 @@ const distanceFormSchema = z.object({
   startTime: z.string(),
   timeLimit: z.string(),
   totalElevation: z.string(),
-  images: z
-    .any()
-    .refine(
-      (files) => {
-        invalidSizeFiles = [] as string[];
-        for (let { size, name } of files) {
-          if (size > FIVE_MB) {
-            invalidSizeFiles.push(name);
-          }
-        }
-        return !(invalidSizeFiles.length > 0);
-      },
-      { message: FilesErrorCodes.InvalidSize }
-    )
-    .refine(
-      (files) => {
-        InvalidMIMETypesFiles = [] as string[];
-        for (let { type, name } of files) {
-          if (!ACCEPTED_IMAGE_MIME_TYPES.includes(type)) {
-            InvalidMIMETypesFiles.push(name);
-          }
-        }
-        return !(InvalidMIMETypesFiles.length > 0);
-      },
-      { message: FilesErrorCodes.InvalidMIMETypes }
-    ),
+  // images: z
+  //   .any()
+  //   .refine(
+  //     (files) => {
+  //       invalidSizeFiles = [] as string[];
+  //       for (let { size, name } of files) {
+  //         if (size > FIVE_MB) {
+  //           invalidSizeFiles.push(name);
+  //         }
+  //       }
+  //       return !(invalidSizeFiles.length > 0);
+  //     },
+  //     { message: FilesErrorCodes.InvalidSize }
+  //   )
+  //   .refine(
+  //     (files) => {
+  //       InvalidMIMETypesFiles = [] as string[];
+  //       for (let { type, name } of files) {
+  //         if (!ACCEPTED_IMAGE_MIME_TYPES.includes(type)) {
+  //           InvalidMIMETypesFiles.push(name);
+  //         }
+  //       }
+  //       return !(InvalidMIMETypesFiles.length > 0);
+  //     },
+  //     { message: FilesErrorCodes.InvalidMIMETypes }
+  //   ),
 });
 
-export const CreateDistance = () => {
-  let dataObject: DistanceFormValues;
+
+  const DTO = useDataTransferContext();
 
   const {
     register,
     handleSubmit,
     formState: { errors },
     setError,
+    setValue,
     control,
   } = useForm<DistanceFormValues>({
     resolver: zodResolver(distanceFormSchema),
-    // mode: "onSubmit",
+    mode: "onBlur",
     // TODO: validate onBlur
+    reValidateMode: "onChange",
     // mode: "onBlur",
   });
 
-  async function setData(rawData: DistanceFormValues) {
-    const data = distanceFormSchema.parse(rawData);
-  
+  let dataObject: DistanceFormValues[];
+
+  let selectOptions = [
+    { label: "none", value: 0 },
+    { label: "1", value: 1 },
+    { label: "2", value: 2 },
+    { label: "3", value: 3 },
+  ];
+
+  const distanceRef = useRef();
+
+  const param = useRouter();
+  const { name } = param.query;
+  const location = param.pathname.split("/");
+
+  useEffect(() => {
+    if (location.at(-1) !== "addNewDistance" && DTO.distancesState.length) {
+      setIsEdit(true);
+      for (let distance of DTO.distancesState) {
+        if (distance.name === name) {
+          Object.keys(distance).forEach((key) => {
+            setValue(
+              key as keyof DistanceFormValues,
+              distance[key as keyof DistanceFormValues]
+            );
+          });
+        }
+      }
+    }
+    return () => setIsEdit(false);
+  }, [name, location, DTO.distancesState, setValue]);
+
+  function setDataFromForm(rawData: DistanceFormValues) {
+    const parsedData = distanceFormSchema.parse(rawData);
+
+    return parsedData;
   }
 
   const onSubmit: SubmitHandler<DistanceFormValues> = async (data) => {
     try {
-      await setData(data);
+      setDataFromForm(data);
+      // console.log("onSubmit dataObject", dataObject);
+      // await addDataInDatabase(db, "distances", "event 1", dataObject)
+      history.back();
     } catch (error) {
-      if (error instanceof Error) setError("root", { message: error.message });
+      if (error instanceof Error) {
+        console.log(error);
+        setError("root", { message: error.message });
+      }
     }
   };
+
+  const onDraft: SubmitHandler<DistanceFormValues> = async (data) => {
+    try {
+      if (data.name === name) {
+        console.log("name ===");
+        const idx = DTO.distancesState.findIndex(
+          (distance) => distance.name === data.name
+        );
+        DTO.updateDistance(idx, distanceFormSchema.parse(data));
+      } else {
+        DTO.setDistances(data);
+      }
+      history.back();
+    } catch (error) {
+      if (error instanceof Error) {
+        console.log(error);
+        setError("root", { message: error.message });
+      }
+    }
+  };
+
+  
 
   return (
     <div className="flex flex-col m-auto bg-slate-200  h-[60%] w-[80%] hero-content shadow-md rounded-md">
       Create distance
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col w-[40%]">
-        <div>
+        {/* <div>
           <div>Enter the name of the distance</div>
           <input
             type="text"
@@ -153,22 +237,31 @@ export const CreateDistance = () => {
               <div className="text-red-700">{errors.name.message}</div>
             )}
           </div>
-        </div>
+        </div> */}
+        <>
+          <Input
+            options={{
+              type: "text",
+              title: "Enter the distance name",
+              name: "name",
+              placeholder: "distance name",
+            }}
+            {...register("name", { required: true })}
+          />
+          <ValidationErrors errors={errors} name="name" />
+        </>
 
         <div>
-          <div>Enter the cost of participation</div>
-          <input
-            type="text"
-            autoComplete="off"
-            placeholder="distance cost"
-            {...register("cost", { required: true })}
+          <Input
+            options={{
+              type: "text",
+              title: "Enter the cost of participation",
+              name: "cost",
+              placeholder: "distance cost",
+            }}
+            {...register("cost")}
           />
-
-          <div className="h-5">
-            {errors.cost && (
-              <div className="text-red-700">{errors.cost.message}</div>
-            )}
-          </div>
+          <ValidationErrors errors={errors} name="cost" />
         </div>
 
         <div>
@@ -228,15 +321,7 @@ export const CreateDistance = () => {
         <div>
           <div>Refreshment points</div>
 
-          <Select
-            {...register("refreshmentPoints")}
-            options={[
-              { label: "none", value: 0 },
-              { label: "1", value: 1 },
-              { label: "2", value: 2 },
-              { label: "3", value: 3 },
-            ]}
-          />
+          <Select {...register("refreshmentPoints")} options={selectOptions} />
 
           <div className="h-5">
             {errors.refreshmentPoints && (
@@ -291,10 +376,11 @@ export const CreateDistance = () => {
         <div>
           <div>Enter start time</div>
           <input
-            type="text"
+            type="time"
             autoComplete="off"
             placeholder="start time"
             {...register("startTime", { required: "This is required." })}
+            // pattern="(?:[01]|2(?![4-9])){1}\d{1}:[0-5]{1}\d{1}"
           />
 
           <div className="h-5">
@@ -307,7 +393,7 @@ export const CreateDistance = () => {
         <div>
           <div>Enter time limit</div>
           <input
-            type="text"
+            type="time"
             autoComplete="off"
             placeholder="time limit"
             {...register("timeLimit", { required: "This is required." })}
@@ -338,8 +424,8 @@ export const CreateDistance = () => {
           </div>
         </div>
 
-        <div>
-          <div>Upload photos</div>
+        {/* <div>
+          <h1>Upload photos</h1>
           <input
             type="file"
             accept="image/png, image/jpeg, image/webp"
@@ -362,9 +448,29 @@ export const CreateDistance = () => {
               </div>
             )}
           </div>
-        </div>
+        </div> */}
 
-        <input type="submit" />
+        {/* <input type="submit" /> */}
+        <div className="flex justify-between">
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+            }}
+          >
+            Clear storage
+          </button>
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              console.log("DTO.distances", DTO.distancesState);
+            }}
+          >
+            Show storage
+          </button>
+
+          <button onClick={handleSubmit(onDraft)}>Save draft</button>
+          <button onClick={handleSubmit(onSubmit)}>Submit</button>
+        </div>
       </form>
     </div>
   );

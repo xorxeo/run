@@ -1,21 +1,22 @@
-import { forwardRef } from "react"
+import { forwardRef } from "react";
 
-
-type Option = {
+export type SelectOption = {
   label: string;
   value: string | number | string[];
 };
 
-type SelectProps = React.DetailedHTMLProps<
+export type SelectProps = React.DetailedHTMLProps<
   React.SelectHTMLAttributes<HTMLSelectElement>,
   HTMLSelectElement
-> & { options: Option[] };
+> & { options: SelectOption[] };
 
 const Select = forwardRef<HTMLSelectElement, SelectProps>(
   ({ options, ...props }, ref) => (
     <select ref={ref} {...props}>
       {options.map(({ label, value }) => (
-          <option key={Math.random()} value={value}>{label}</option>
+        <option key={Math.random()} value={value}>
+          {label}
+        </option>
       ))}
     </select>
   )

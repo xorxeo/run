@@ -1,4 +1,3 @@
-import { FirebaseEntity, initFirebase } from "@/firebase/initFirebase";
 import {
   createContext,
   FC,
@@ -6,9 +5,9 @@ import {
   useEffect,
   useState,
 } from "react";
+import { getAuth } from "firebase/auth";
 
-
-import { getAuth, signInAnonymously } from "firebase/auth";
+import { FirebaseEntity, initFirebase } from "@/firebase/initFirebase";
 
 export const FirebaseContext = createContext<FirebaseEntity>(
   null as unknown as FirebaseEntity
@@ -21,9 +20,7 @@ export const FirebaseContainer: FC<PropsWithChildren> = (props) => {
 
   useEffect(() => {
     let { app, db, currentAuth } = initFirebase();
-
     currentAuth = getAuth();
-    // signInAnonymously(currentAuth);
 
     if (app && db && currentAuth) {
       setEntity({ app, db, currentAuth });
@@ -31,8 +28,6 @@ export const FirebaseContainer: FC<PropsWithChildren> = (props) => {
       console.warn("No app or db");
     }
   }, []);
-
-  // console.log(entity);
 
   if (!entity) {
     return null;
