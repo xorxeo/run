@@ -1,7 +1,7 @@
-import { DistanceFormValues } from "@/components/CreateDistance";
-import { EventFormValues } from "@/components/CreateEventForm";
-import { DataTransferContext } from "@/containers/DataTransferContainer";
-import { useContext, useEffect, useState } from "react";
+import { DistanceFormValues } from '@/components/CreateDistance';
+import { EventFormValues } from '@/components/CreateEventForm';
+import { DataTransferContext } from '@/containers/DataTransferContainer';
+import { useContext, useEffect, useState } from 'react';
 
 export function useDataTransfer() {
   const DTO = useContext(DataTransferContext);
@@ -13,7 +13,7 @@ export function useDataTransfer() {
   const [eventsState, setEventsState] = useState<EventFormValues[]>([]);
 
   const setDistances = (data: DistanceFormValues) => {
-      setDistancesState((distancesState) => [...distancesState, data]);
+    setDistancesState((distancesState) => [...distancesState, data]);
   };
 
   const deleteDistances = (index: number) => {
@@ -29,13 +29,10 @@ export function useDataTransfer() {
   };
 
   const setEvents = (data: EventFormValues) => {
-    const rules = (rules: File[]) => {
-      
-    }
-    setEventsState((eventsState) => [...eventsState, data])
-  }
+    const rules = (rules: File[]) => {};
+    setEventsState((eventsState) => [...eventsState, data]);
+  };
 
-  
   // useEffect(() => {
   //   // DTO.distances = distancesState;
   //   console.log("useEffect distances", distancesState);

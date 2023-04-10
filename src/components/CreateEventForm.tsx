@@ -18,7 +18,7 @@ import {
 import Link from "next/link";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import Select from "react-select";
+// import Select from "react-select";
 
 import TextArea from "./TextArea";
 import { DataTransferContext } from "@/containers/DataTransferContainer";
