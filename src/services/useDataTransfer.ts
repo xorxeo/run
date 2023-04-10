@@ -1,5 +1,5 @@
 import { DistanceFormValues } from '@/components/CreateDistance';
-import { EventFormValues } from '@/components/CreateEventForm';
+import { EventFormValues } from '@/modules/EventForm/components/CreateEventForm';
 import { DataTransferContext } from '@/containers/DataTransferContainer';
 import { useContext, useEffect, useState } from 'react';
 

@@ -1,14 +1,13 @@
-import { useContext } from "react";
+import { useContext } from 'react';
 
-import { FirebaseContext } from "@/containers/FirebaseContainer";
-import { CreateEventForm } from "../../../components/CreateEventForm";
+import { FirebaseContext } from '@/containers/FirebaseContainer';
+import { CreateEventForm } from '../../../modules/EventForm/components/CreateEventForm';
 
- const CreateEvent = () => {
+const CreateEvent = () => {
   const firestore = useContext(FirebaseContext);
 
   return (
     <div className="flex flex-col bg-">
-      
       <CreateEventForm />
     </div>
   );

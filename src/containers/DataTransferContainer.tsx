@@ -1,17 +1,22 @@
-import { DistanceFormValues } from "@/components/CreateDistance";
-import { EventFormValues } from "@/components/CreateEventForm";
-import {  useDataTransfer } from "@/services/useDataTransfer";
-import { createContext, FC, PropsWithChildren, useContext, useState } from "react";
+import { DistanceFormValues } from '@/components/CreateDistance';
+import { EventFormValues } from '@/modules/EventForm/components/CreateEventForm';
+import { useDataTransfer } from '@/services/useDataTransfer';
+import {
+  createContext,
+  FC,
+  PropsWithChildren,
+  useContext,
+  useState,
+} from 'react';
 
- type DataTransferContextType = {
-   distancesState: DistanceFormValues[];
-   setDistances: (data: DistanceFormValues) => void;
-   updateDistance: (index: number, data: DistanceFormValues) => void;
-   deleteDistances: (index: number) => void;
-   eventsState: EventFormValues[];
-   setEvents: (data: EventFormValues) => void;
- };
-
+type DataTransferContextType = {
+  distancesState: DistanceFormValues[];
+  setDistances: (data: DistanceFormValues) => void;
+  updateDistance: (index: number, data: DistanceFormValues) => void;
+  deleteDistances: (index: number) => void;
+  eventsState: EventFormValues[];
+  setEvents: (data: EventFormValues) => void;
+};
 
 export const DataTransferContext = createContext<DataTransferContextType>({
   distancesState: [],
