@@ -1,17 +1,28 @@
 import { ChangeEvent, Dispatch, FC, SetStateAction, useRef } from 'react';
 import { FormState, UseFormRegister } from 'react-hook-form';
 import { ErrorCodes, EventFormValues } from '../event-form.typings';
-import { getStorage, ref as fireBaseRef, uploadBytes } from 'firebase/storage';
+import {
+  getStorage,
+  ref as fireBaseRef,
+  uploadBytes,
+  UploadResult,
+} from 'firebase/storage';
+import { useDispatch } from 'react-redux';
+import { addRule } from '../store/eventFormSlice';
 
 type EventFormUploadFilesProps = {
   register: UseFormRegister<EventFormValues>;
   setUploadFiles: Dispatch<SetStateAction<File[]>>;
   formState: FormState<EventFormValues>;
+  inputName: keyof EventFormValues;
+  onUpload: (snapshot: UploadResult) => void;
 };
 
 export const EventFormUploadFiles: FC<EventFormUploadFilesProps> = (props) => {
-  const { register, setUploadFiles, formState } = props;
-  const { ref, ...rulesInputOptions } = register('rules');
+  const { register, setUploadFiles, formState, inputName, onUpload } = props;
+
+  const { ref, ...rulesInputOptions } = register(inputName);
+
   const uploadRulesFilesRef = useRef<HTMLInputElement | null>(null);
 
   const handleFilesChange = ({
@@ -27,9 +38,13 @@ export const EventFormUploadFiles: FC<EventFormUploadFilesProps> = (props) => {
         const storageRef = fireBaseRef(storage, `test/${name}`);
 
         // 'file' comes from the Blob or File API
-        uploadBytes(storageRef, file).then((snapshot) => {
-          console.log('Uploaded a blob or file!', snapshot);
-        });
+        uploadBytes(storageRef, file).then(
+          (snapshot) => {
+            console.log('Uploaded a blob or file!', snapshot);
+            onUpload(snapshot);
+          }
+          // TODO: catch error
+        );
       }
     }
   };

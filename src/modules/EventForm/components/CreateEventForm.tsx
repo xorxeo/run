@@ -31,6 +31,10 @@ import Input from '../../../components/Input';
 import { useRouter } from 'next/router';
 import { ErrorCodes, EventFormValues } from '../event-form.typings';
 import { EventFormUploadFiles } from './EventFormUploadFiles';
+import { UploadResult } from 'firebase/storage';
+import { useDispatch, useSelector } from 'react-redux';
+import { addRule, deleteRule, selectRules } from '../store/eventFormSlice';
+import { PreviewFilelist } from './PreviewFilelist';
 
 type SelectOptionsDistances = {
   label: string;
@@ -64,23 +68,7 @@ const eventFormSchema = z.object({
   eventName: z.string().min(1),
   information: z.string().min(8, { message: 'min 8' }),
   distances: z.array(ZodDistancesArraySchema),
-
-  rules: z.any().refine(
-    (files) => {
-      console.log('validation', InvalidMIMETypesFiles);
-      InvalidMIMETypesFiles = [];
-      for (let { name, type } of files) {
-        console.log('for');
-
-        if (!ACCEPTED_RULES_MIME_TYPES.includes(type)) {
-          InvalidMIMETypesFiles.push(name);
-          console.log(InvalidMIMETypesFiles);
-        }
-      }
-      return !(InvalidMIMETypesFiles.length > 0);
-    },
-    { message: '' }
-  ),
+  rules: z.array(z.object({ name: z.string(), path: z.string() })),
 });
 
 export const CreateEventForm = () => {
@@ -127,6 +115,9 @@ export const CreateEventForm = () => {
   const [selectOptions, setSelectOptions] = useState<SelectOptionsDistances[]>(
     []
   );
+
+  const dispatch = useDispatch();
+  const storedRules = useSelector(selectRules);
 
   const DTO = useContext(DataTransferContext);
   const param = useRouter();
@@ -228,18 +219,20 @@ export const CreateEventForm = () => {
     // return selectedOptions;
   };
 
-  const storeDirtyValues = () => {
-    // console.log(dirtyFields.eventName);
-    // console.log(textAreaRef.current);
+  const handleRulesUpload = (snapshot: UploadResult) => {
+    const rule = { name: snapshot.ref.name, path: snapshot.ref.fullPath };
+    dispatch(addRule(rule));
+
+    setValue('rules', [...storedRules, rule]);
   };
 
-  useEffect(() => {
-    if (uploadFiles.length) {
-      console.log('useEffect uploadFiles');
-      setValue('rules', uploadFiles);
-      // dataTransform();
-    }
-  }, [uploadFiles]);
+  const handleRuleDelete = (name: string) => {
+    dispatch(deleteRule(name));
+    setValue(
+      'rules',
+      storedRules.filter((rule) => rule.name !== name)
+    );
+  };
 
   useEffect(() => {
     if (DTO.distancesState.length) {
@@ -489,6 +482,13 @@ export const CreateEventForm = () => {
             register={register}
             formState={formState}
             setUploadFiles={setUploadFiles}
+            inputName={'rules'}
+            onUpload={handleRulesUpload}
+          />
+
+          <PreviewFilelist
+            fileNames={storedRules.map(({ name }) => name)}
+            onDelete={handleRuleDelete}
           />
 
           <input type="submit" />

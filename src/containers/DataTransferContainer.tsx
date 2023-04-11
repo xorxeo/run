@@ -1,5 +1,5 @@
 import { DistanceFormValues } from '@/components/CreateDistance';
-import { EventFormValues } from '@/modules/EventForm/components/CreateEventForm';
+import { EventFormValues } from '../modules/EventForm/event-form.typings';
 import { useDataTransfer } from '@/services/useDataTransfer';
 import {
   createContext,
