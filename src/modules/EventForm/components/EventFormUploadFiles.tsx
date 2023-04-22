@@ -1,6 +1,8 @@
 import { ChangeEvent, Dispatch, FC, SetStateAction, useRef } from 'react';
-import { FormState, UseFormRegister } from 'react-hook-form';
-import { ErrorCodes, EventFormValues } from '../event-form.typings';
+import { FormState, UseFormRegister, FieldErrors } from 'react-hook-form';
+import { ErrorCodes } from '../event-form.typings';
+import { ErrorMessage } from '@hookform/error-message';
+
 import {
   getStorage,
   ref as fireBaseRef,
@@ -9,26 +11,40 @@ import {
 } from 'firebase/storage';
 import { useDispatch } from 'react-redux';
 import { addRule } from '../store/eventFormSlice';
+import { InputErrorMessage } from '@/components/text-field/TextFieldErrorMessage';
+import { EventFormValues } from './create-event-form/createForm.schema';
 
 type EventFormUploadFilesProps = {
-  register: UseFormRegister<EventFormValues>;
+  register?: UseFormRegister<EventFormValues>;
   setUploadFiles: Dispatch<SetStateAction<File[]>>;
   formState: FormState<EventFormValues>;
   inputName: keyof EventFormValues;
+  acceptTypes?: string;
+  errors?: FieldErrors;
   onUpload: (snapshot: UploadResult) => void;
 };
 
 export const EventFormUploadFiles: FC<EventFormUploadFilesProps> = (props) => {
-  const { register, setUploadFiles, formState, inputName, onUpload } = props;
+  const {
+    register,
+    setUploadFiles,
+    formState,
+    inputName,
+    acceptTypes,
+    onUpload,
+  } = props;
 
-  const { ref, ...rulesInputOptions } = register(inputName);
+  const { ref, ...rulesInputOptions } = register?.(inputName) ?? {};
 
   const uploadRulesFilesRef = useRef<HTMLInputElement | null>(null);
+
+  const { errors } = formState;
 
   const handleFilesChange = ({
     currentTarget: { files },
   }: ChangeEvent<HTMLInputElement>) => {
     console.log('in change');
+
     if (files?.length) {
       setUploadFiles((uploadFiles) => [...uploadFiles, ...files]);
 
@@ -42,10 +58,13 @@ export const EventFormUploadFiles: FC<EventFormUploadFilesProps> = (props) => {
           (snapshot) => {
             console.log('Uploaded a blob or file!', snapshot);
             onUpload(snapshot);
+            console.log('in change', snapshot);
           }
           // TODO: catch error
         );
       }
+      console.log('files in change', files);
+      console.log('in change', errors.rules);
     }
   };
 
@@ -65,60 +84,26 @@ export const EventFormUploadFiles: FC<EventFormUploadFilesProps> = (props) => {
           <input
             {...rulesInputOptions}
             ref={(element) => {
-              ref(element);
+              ref?.(element);
               uploadRulesFilesRef.current = element;
             }}
             onChange={handleFilesChange}
             id="rules"
             multiple
-            className="opacity-0 w-0"
+            // className="opacity-0 w-0"
             type="file"
-            accept="application/pdf, application/msword"
+            accept={acceptTypes}
           />
         </div>
-
-        {/* <div>
-                  {uploadFiles?.length > 0 &&
-                    uploadFiles.map((file, index) => {
-                      return (
-                        <div
-                          key={index}
-                          ref={(file: HTMLDivElement) => {
-                            previewRefs.current[index] = file;
-                          }}
-                          className="flex basis-2/3 w-full pl-2 justify-between items-center rounded-md border-[1px] border-gray-300"
-                        >
-                          <div key={Math.random()} className="flex flex-row ">
-                            {file.name}
-                          </div>
-                          <button
-                            className=""
-                            onClick={(e) => {
-                              e.preventDefault();
-                              handlePreviewDelete(index);
-                            }}
-                          >
-                            <svg
-                              className="flex border-[1px] opacity-40 hover:opacity-70 hover:bg-[#FBBD23]"
-                              height="20"
-                              width="20"
-                              viewBox="0 0 20 20"
-                            >
-                              <path d="M14.348 14.849c-0.469 0.469-1.229 0.469-1.697 0l-2.651-3.030-2.651 3.029c-0.469 0.469-1.229 0.469-1.697 0-0.469-0.469-0.469-1.229 0-1.697l2.758-3.15-2.759-3.152c-0.469-0.469-0.469-1.228 0-1.697s1.228-0.469 1.697 0l2.652 3.031 2.651-3.031c0.469-0.469 1.228-0.469 1.697 0s0.469 1.229 0 1.697l-2.758 3.152 2.758 3.15c0.469 0.469 0.469 1.229 0 1.698z"></path>
-                            </svg>
-                          </button>
-                        </div>
-                      );
-                    })}
-                </div> */}
-        {/* {formState.errors.rules && (
-                  <div className="text-red-700">
-                    {formState.errors.rules?.message ===
-                      ErrorCodes.invalidTypes &&
-                      `${InvalidMIMETypesFiles?.join(', ')}`}
-                  </div>
-                )} */}
       </div>
+      <ErrorMessage
+        errors={errors}
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        name={inputName as any}
+        render={({ message }) => (
+          <InputErrorMessage>{message}</InputErrorMessage>
+        )}
+      />
     </div>
   );
 };

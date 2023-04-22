@@ -1,9 +1,6 @@
 import { createWrapper } from 'next-redux-wrapper';
 
-import {
-  eventFormSlice,
-  eventFormSliceReducer,
-} from '@/modules/EventForm/store/eventFormSlice';
+import { eventFormSlice } from '@/modules/EventForm/store/eventFormSlice';
 import { configureStore } from '@reduxjs/toolkit';
 
 const makeStore = () =>

@@ -1,11 +1,11 @@
-import { CreateDistance } from "@/components/CreateDistance";
-import Link from "next/link";
+import { CreateDistance } from '@/modules/EventForm/components/CreateDistance';
+import Link from 'next/link';
 
 const EditDistance = () => {
   return (
     <div>
       {/* <Link href={}> */}
-        <CreateDistance /> 
+      <CreateDistance />
       {/* </Link> */}
     </div>
   );
