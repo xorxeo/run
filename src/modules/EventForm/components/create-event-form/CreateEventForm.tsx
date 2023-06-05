@@ -1,282 +1,341 @@
-import {
-  ChangeEvent,
-  MouseEvent,
-  MouseEventHandler,
-  SyntheticEvent,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
-import {
-  SubmitHandler,
-  useForm,
-  useFormState,
-  useFieldArray,
-  Controller,
-  useController,
-} from 'react-hook-form';
-import Link from 'next/link';
-import { unknown, z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
-// import Select from "react-select";
+import { useEffect, useState } from 'react';
 
-import TextArea from '../../../../components/TextArea';
-import { useDatabaseManageData } from '@/services/DatabaseManageData';
-import { FirebaseContext } from '@/containers/FirebaseContainer';
-// import Input from '../../../components/Input';
-import { TextField } from '@/components/text-field/TextField';
+import { SubmitHandler, useForm, FormProvider } from 'react-hook-form';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { ErrorCodes, EventFormInputs } from '../../event-form.typings';
-import { EventFormUploadFiles } from '../EventFormUploadFiles';
-import { UploadResult } from 'firebase/storage';
+
 import { useDispatch, useSelector } from 'react-redux';
+
+import { zodResolver } from '@hookform/resolvers/zod';
+
+import { collection, doc, setDoc } from 'firebase/firestore';
+
+import {
+  UploadResult,
+  getStorage,
+  ref as fireBaseRef,
+  deleteObject,
+} from 'firebase/storage';
+
+import { TextArea } from '../../../../components/TextArea';
+
+import { EventFormInputs, EventUploadFile } from '../../event-form.typings';
+import { EventFormUploadFiles } from '../EventFormUploadFiles';
 import {
   InputValues,
+  addImages,
   addRule,
-  deleteDistance,
+  deleteNewDistance,
+  deleteImage,
   deleteRule,
-  selectDistances,
+  selectNewDistances,
+  selectImages,
   selectInputValues,
   selectRules,
   storeInputValues,
+  selectPartnersStoredSelectOptions,
+  selectDistancesStoredSelectOptions,
+  partnersSelectOptions,
+  distancesSelectOptions,
 } from '../../store/eventFormSlice';
 import { PreviewFilelist } from '../PreviewFilelist';
-import { ErrorMessage } from '@hookform/error-message';
-import { InputErrorMessage } from '@/components/text-field/TextFieldErrorMessage';
 import {
-  DistanceFormValues,
   EventFormValues,
   eventFormSchema,
-} from './createForm.schema';
+} from '../../event-form.schema';
 import { FormTextField } from '@/components/text-field/FormTextField';
 import { PreviewDistancesList } from '../PreviewDistancesList';
+import {
+  ACCEPTED_IMAGE_MIME_TYPES,
+  ACCEPTED_RULES_MIME_TYPES,
+  DISTANCES_SELECT_OPTIONS,
+  PARTNERS_FROM_DATABASE,
+} from '@/modules/EventForm/components/create-event-form/create-event-form.consts';
+import { AddPartners } from '../AddPartners';
+import { initFirebase } from '../../../../firebase/initFirebase';
+import { FormMultiSelect } from '@/components/select/FormMultiSelect';
 
-type SelectOptionsDistances = {
-  label: string;
-  value: DistanceFormValues;
+import { inputStyle, textAreaStyle } from '../../../../styles/eventFormStyles';
+
+export type HandleFileDeletePropsType = {
+  // fileName: string;
+  reducer: ReturnType<() => any>;
+  inputName: keyof EventFormValues;
+  storedFiles: EventUploadFile[];
 };
-
-const ACCEPTED_RULES_MIME_TYPES = ['application/pdf', 'application/msword'];
-
-let InvalidMIMETypesFiles: string[] = [];
 
 export const CreateEventForm = () => {
   const [eventNameState, setEventNameState] = useState('');
-  const {
-    register,
-    handleSubmit,
-    formState,
-    getFieldState,
-    setError,
-    control,
-    setValue,
-    getValues,
-    trigger,
-  } = useForm<EventFormValues>({
+  const methods = useForm<EventFormValues>({
     resolver: zodResolver(eventFormSchema),
-    mode: 'onBlur',
+    mode: 'onChange',
     reValidateMode: 'onBlur',
     defaultValues: {
       eventName: eventNameState,
       information: '',
-      distances: [],
+      newDistances: [],
+      distancesFromDatabase: [],
       rules: [],
+      images: [],
+      newPartners: [],
+      partnersFromDatabase: [],
     },
   });
-  const { addDataInDatabase } = useDatabaseManageData();
-  const { db } = useContext(FirebaseContext);
 
-  const { dirtyFields } = useFormState({ control });
-  const { errors } = formState;
-
-  const previewRefs = useRef<HTMLDivElement[]>([]);
-  const [uploadFiles, setUploadFiles] = useState<File[]>([]);
-
-  const dispatch = useDispatch();
-  const storedRules = useSelector(selectRules);
-
-  const storedInputValues = useSelector(selectInputValues);
-
-  const storedDistances = useSelector(selectDistances);
+  const { db } = initFirebase();
 
   const router = useRouter();
 
+  const { errors } = methods.formState;
+
+  const dispatch = useDispatch();
+
+  const storedRules = useSelector(selectRules);
+
+  const storedImages = useSelector(selectImages);
+
+  const storedInputValues = useSelector(selectInputValues);
+
+  const storedDistances = useSelector(selectNewDistances);
+
+  const storage = getStorage();
+
+  const storedPartnersUnselectedOptions = useSelector(
+    selectPartnersStoredSelectOptions
+  );
+
+  const storedDistancesUnselectedOptions = useSelector(
+    selectDistancesStoredSelectOptions
+  );
+
+  if (db) {
+    const eventsCollectionRef = collection(db, 'events');
+    console.log('eventsCollectionRef from eventform', eventsCollectionRef)
+  }
+
+  useEffect(() => {
+    // TODO: reset values when event is created
+
+    Object.keys(storedInputValues).forEach((key) => {
+      methods.setValue(
+        key as keyof EventFormValues,
+        storedInputValues[key as keyof EventFormValues]
+      );
+    });
+
+    return () => handleGetInputValues();
+  }, []);
+
   async function setData(rawData: EventFormValues) {
     eventFormSchema.parse(rawData);
-    console.log('rawData', rawData);
   }
 
   const onSubmit: SubmitHandler<EventFormValues> = async (data) => {
-    console.log('in submit');
-
     try {
-      console.log(data);
-
       setData(data);
-      console.log(dirtyFields);
+      // const eventRef = doc(collection(db!, 'events'));
+      setDoc(doc(collection(db!, 'events')), data);
+
     } catch (error) {
       if (error instanceof Error) {
-        setError('root', { message: error.message });
+        methods.setError('root', { message: error.message });
       }
     }
-    // await addDataInDatabase(db, "events", "event 1", DTO.distancesState);
-    // console.log("try add in db");
-    console.log(data);
-  };
-
-  const handlePreviewDelete = (index: number) => {
-    console.log('in delete');
-
-    setUploadFiles(
-      uploadFiles?.filter(
-        (file) => file.name != previewRefs.current[index].innerText
-      )
-    );
-    console.log('uploadFiles', uploadFiles);
   };
 
   const handleRulesUpload = (snapshot: UploadResult) => {
     const rule = { name: snapshot.ref.name, path: snapshot.ref.fullPath };
     dispatch(addRule(rule));
-    setValue('rules', [...storedRules, rule]);
-    console.log('getValues', getValues());
+    methods.setValue('rules', [...storedRules, rule]);
+    console.log('getValues', methods.getValues());
   };
 
-  const handleRuleDelete = (name: string) => {
-    dispatch(deleteRule(name));
-    setValue(
-      'rules',
-      storedRules.filter((rule) => rule.name !== name)
+  const handleFileDelete = (
+    fileName: string,
+    props: HandleFileDeletePropsType
+  ) => {
+    const { inputName, storedFiles, reducer } = props;
+    const fileRef = fireBaseRef(storage, `${inputName}/${fileName}`);
+    deleteObject(fileRef);
+
+    dispatch(reducer(fileName));
+    methods.setValue(
+      inputName,
+      storedFiles.filter((file) => file.name !== fileName)
     );
   };
 
   const handleDistanceDelete = (id: string) => {
-    dispatch(deleteDistance(id));
-    setValue(
-      'distances',
+    dispatch(deleteNewDistance(id));
+    methods.setValue(
+      'newDistances',
       storedDistances.filter((distance) => distance.id !== id)
     );
-  };
-
-  const handleGetInputValues = () => {
-    const values = {} as { [key in EventFormInputs]: any };
-    for (let input in EventFormInputs) {
-      values[input as keyof typeof EventFormInputs] = getValues(
-        input as keyof InputValues
-      );
-    }
-    console.log('handleGetInputValues', values);
-    dispatch(storeInputValues(values));
   };
 
   const handleDistanceEdit = (id: string) => {
     router.push(`createEvent/edit/distance/${id}`);
   };
 
-  useEffect(() => {
-    // TODO: reset values when event is created
+  const handleImagesUpload = (snapshot: UploadResult) => {
+    const image = {
+      name: snapshot.ref.name,
+      path: snapshot.ref.fullPath,
+    };
+    dispatch(addImages(image));
+    methods.setValue('images', [...storedImages, image]);
+  };
 
-    Object.keys(storedInputValues).forEach((key) => {
-      setValue(
-        key as keyof InputValues,
-        storedInputValues[key as keyof InputValues]
+  const handleGetInputValues = () => {
+    const values = {} as { [key in EventFormInputs]: any };
+    for (let input in EventFormInputs) {
+      values[input as keyof typeof EventFormInputs] = methods.getValues(
+        input as keyof InputValues
       );
-    });
-    dispatch(storeInputValues({} as InputValues));
+    }
+    dispatch(storeInputValues(values));
+  };
 
-    setValue('distances', storedDistances);
+  const checkStoredValues = (
+    inputNameToCheck: keyof EventFormValues,
+    storedValues: EventFormValues
+  ) => {
+    if (storedValues[inputNameToCheck]) {
+      return true;
+    }
+    return false;
+  };
 
-    return () => handleGetInputValues();
-  }, []);
-
-  // useEffect(() => {
-  //   if (eventNameState && location.at(-1) === "addNewDistance") {
-  //     setValue("eventName", eventNameState);
-  //     console.log(eventNameState);
-  //   }
-  // }, [location, eventNameState]);
-
-  // useMemo(() => {
-  //   setSelectOptions(getSelectOptions());
-  //   // console.log("useMemo selectOptions", selectOptions);
-  // }, [DTO.distances]);
-
-  // if (formState.errors) {
-  //   console.log(formState.errors);
-  // }
 
   return (
-    <div className=" flex flex-col items-center bg-gray-50 h-[100%] w-[100%] ">
-      <div className="flex flex-col items-center bg-gray-50 w-[80%] h-[100%] shadow-md rounded-md">
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          action=""
-          className="form flex flex-col w-[75%] gap-5 "
-        >
-          <div className="flex h-24  items-center font-medium text-lg border-b-[1px] border-gray-300">
-            Event Constructor
-          </div>
-
-          <FormTextField
-            name="eventName"
-            placeholder="Event name"
-            control={control}
-            className={`${
-              getFieldState('eventName').invalid.toString() === 'true'
-                ? 'border-red-600'
-                : ' focus:border-[#FBBD23]'
-            } input bg-gray-100 w-full  focus:outline-none `}
-          />
-
-          <div className="flex flex-col items-center rounded-md p-5 max-w-full border-b-[1px] border-gray-300">
-            <h1 className="mb-5" tabIndex={1}>
-              General information
-            </h1>
-
-            <TextArea register={register} errors={errors} name="information" />
-          </div>
-
-          <div className="add dist flex flex-col justify-center rounded-md p-5 max-w-[100%] border-b-[1px] border-gray-300">
-            <div className="flex w-full justify-center">
-              <h1 className="flex  mb-5">Distances</h1>
+    <div className=" flex flex-col items-center h-[100%] w-[100%] ">
+      <div className="flex flex-col items-center  w-[80%] lg:w-[55%] h-[100%] shadow-md rounded-md">
+        <FormProvider {...methods}>
+          <form
+            onSubmit={methods.handleSubmit(onSubmit)}
+            action=""
+            className="form flex flex-col w-[75%] gap-3 "
+          >
+            <div className="flex h-24 items-center justify-center font-medium text-lg ">
+              Event Constructor
             </div>
 
-            <div className="flex flex-col items-center justify-center ">
-              <div className="flex flex-col basis-1/4 w-full items-center pb-5">
-                <Link
-                  href="/admin/createEvent/addNewDistance"
-                  className="flex p-2 w-full h-12 justify-center rounded-md border-[1px] border-[#FBBD23] cursor-pointer transition ease-in hover:transition-all 1s hover:bg-[#FBBD23] "
-                >
-                  <button>Add new distance</button>
-                </Link>
+            <FormTextField
+              name="eventName"
+              label="Event name"
+              placeholder="Event name"
+              control={methods.control}
+              style={inputStyle}
+            />
+
+            <TextArea
+              name="information"
+              control={methods.control}
+              label="General information"
+              placeholder="General information"
+              style={textAreaStyle}
+            />
+
+            <div className="add dist flex flex-col justify-center max-w-[100%] rounded-md border border-slate-900 ">
+              <div className="flex w-full justify-center">
+                <h1 className=" m-auto">Distances</h1>
               </div>
 
-              <PreviewDistancesList
-                distances={storedDistances}
-                onDelete={handleDistanceDelete}
-                onEdit={handleDistanceEdit}
-              />
+              <div className="flex flex-col items-center justify-center ">
+                <FormMultiSelect
+                  name={`distancesFromDatabase`}
+                  control={methods.control}
+                  dataForSelectOptions={DISTANCES_SELECT_OPTIONS}
+                  storedUnselectedOptions={storedDistancesUnselectedOptions}
+                  reducer={distancesSelectOptions}
+                  hasStoredValues={checkStoredValues(
+                    'distancesFromDatabase',
+                    storedInputValues
+                  )}
+                  label={'Choose distances from database or add new'}
+                />
+
+                <div className="flex flex-col basis-1/4 w-full items-center ">
+                  <Link
+                    href="/admin/createEvent/addNewDistance"
+                    className="flex p-2 w-full h-12 justify-center rounded-md border-[1px] border-[#FBBD23] cursor-pointer transition ease-in hover:transition-all 1s hover:bg-[#FBBD23] "
+                  >
+                    <button>Add new distance</button>
+                  </Link>
+                </div>
+
+                <PreviewDistancesList
+                  distances={storedDistances}
+                  onDelete={handleDistanceDelete}
+                  onEdit={handleDistanceEdit}
+                />
+              </div>
             </div>
-          </div>
 
-          <EventFormUploadFiles
-            formState={formState}
-            setUploadFiles={setUploadFiles}
-            inputName={'rules'}
-            onUpload={handleRulesUpload}
-            acceptTypes="application/pdf, application/msword"
-            errors={errors}
-          />
+            <EventFormUploadFiles
+              inputName={'rules'}
+              label="Rules and regulations"
+              collectionName="rules"
+              formState={methods.formState}
+              onUpload={handleRulesUpload}
+              acceptTypes={ACCEPTED_RULES_MIME_TYPES}
+              errors={errors}
+            />
 
-          <PreviewFilelist
-            fileNames={storedRules.map(({ name }) => name)}
-            onDelete={handleRuleDelete}
-          />
+            {storedRules.length > 0 && (
+              <PreviewFilelist
+                fileNames={storedRules.map(({ name }) => name)}
+                onDelete={handleFileDelete}
+                onDeleteProps={{
+                  inputName: 'rules',
+                  storedFiles: storedRules,
+                  reducer: deleteRule,
+                }}
+              />
+            )}
 
-          <input type="submit" />
-        </form>
+            <EventFormUploadFiles
+              inputName={'images'}
+              label="Images"
+              collectionName="images"
+              formState={methods.formState}
+              onUpload={handleImagesUpload}
+              acceptTypes={ACCEPTED_IMAGE_MIME_TYPES}
+              errors={errors}
+            />
+
+            {storedImages.length > 0 && (
+              <PreviewFilelist
+                fileNames={storedImages.map(({ name }) => name)}
+                onDelete={handleFileDelete}
+                onDeleteProps={{
+                  inputName: 'images',
+                  storedFiles: storedImages,
+                  reducer: deleteImage,
+                }}
+              />
+            )}
+
+            <div className="add dist flex flex-col justify-center max-w-[100%] rounded-md border border-slate-900 ">
+              <FormMultiSelect
+                name={`partnersFromDatabase`}
+                control={methods.control}
+                dataForSelectOptions={PARTNERS_FROM_DATABASE}
+                storedUnselectedOptions={storedPartnersUnselectedOptions}
+                reducer={partnersSelectOptions}
+                hasStoredValues={checkStoredValues(
+                  'partnersFromDatabase',
+                  storedInputValues
+                )}
+                label={'Choose partners from database or add new'}
+              />
+
+              <AddPartners />
+            </div>
+
+            <input className="bg-yellow-300" type="submit" />
+          </form>
+        </FormProvider>
       </div>
     </div>
   );

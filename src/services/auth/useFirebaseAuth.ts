@@ -1,20 +1,23 @@
-import { FirebaseContext } from "@/containers/FirebaseContainer";
-import { useContext, useState, useEffect, useCallback } from "react";
+import { FirebaseContext } from '@/containers/FirebaseContainer';
+import { useContext, useState, useEffect } from 'react';
 import {
   User,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
-} from "firebase/auth";
+} from 'firebase/auth';
 
 export type authUserContextType = {
-    authUser: User | null;
-    admin: boolean | null;
+  authUser: User | null;
+  admin: boolean | null;
   loading: boolean;
   signInEmailAndPassword: (email: string, password: string) => Promise<void>;
-  createUserEmailAndPassword: (email: string,password: string) => Promise<void>;
+  createUserEmailAndPassword: (
+    email: string,
+    password: string
+  ) => Promise<void>;
   signOff: () => Promise<void>;
-    checkAdmin: () => void;
+  checkAdmin: () => void;
 };
 
 export function useFirebaseAuth() {
@@ -34,36 +37,25 @@ export function useFirebaseAuth() {
     }
 
     setLoading(true);
-      setAuthUser(userState);
-      checkAdmin();
+    setAuthUser(userState);
+    checkAdmin();
     setLoading(false);
 
-    console.log(
-      "authUser from useFirebaseAuth authStateChanged",
-      authUser?.email
-    );
   };
 
   useEffect(() => {
     const unsubscribe = currentAuth.onAuthStateChanged(authStateChanged);
-    
-    // console.log(
-    //   ">>> authUser from useFirebaseAuth authStateChanged useEffect",
-    //   authUser
-    // );
-
     return () => unsubscribe();
   }, [currentAuth, authUser]);
 
   const clear = () => {
     setAuthUser(null);
     setAdmin(false);
-      setLoading(true);
+    setLoading(true);
   };
 
   const signInEmailAndPassword = async (email: string, password: string) => {
-      await signInWithEmailAndPassword(currentAuth, email, password);
-      
+    await signInWithEmailAndPassword(currentAuth, email, password);
   };
 
   const createUserEmailAndPassword = async (
@@ -77,22 +69,16 @@ export function useFirebaseAuth() {
     await signOut(currentAuth).then(clear);
   };
 
-    const checkAdmin = () => {
-        console.log(process.env.NEXT_PUBLIC_FIREBASE_CLIENT_EMAIL);
-        console.log(currentAuth.currentUser?.email);
-        
-     if (
-       currentAuth.currentUser?.email &&
-       currentAuth.currentUser?.email ===
-         process.env.NEXT_PUBLIC_FIREBASE_CLIENT_EMAIL
-     ) {
-         setAdmin(true);
-           console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>",admin);
-       
-     } else {
-       setAdmin(false);
-     }
-       
+  const checkAdmin = () => {
+    if (
+      currentAuth.currentUser?.email &&
+      currentAuth.currentUser?.email ===
+        process.env.NEXT_PUBLIC_FIREBASE_CLIENT_EMAIL
+    ) {
+      setAdmin(true);
+    } else {
+      setAdmin(false);
+    }
     return admin;
   };
 

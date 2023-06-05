@@ -22,6 +22,10 @@ export const FirebaseContainer: FC<PropsWithChildren> = (props) => {
     let { app, db, currentAuth } = initFirebase();
     currentAuth = getAuth();
 
+    // console.log('app', app)
+    // console.log('db', db)
+    // console.log('currentAuth', currentAuth)
+
     if (app && db && currentAuth) {
       setEntity({ app, db, currentAuth });
     } else {

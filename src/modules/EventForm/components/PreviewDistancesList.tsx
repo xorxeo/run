@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import { DistanceFormValues } from './create-event-form/createForm.schema';
+import { DistanceFormValues } from '../event-form.schema';
 
 type PreviewDistancesListProps = {
   distances: DistanceFormValues[];
@@ -18,10 +18,10 @@ export const PreviewDistancesList: FC<PreviewDistancesListProps> = (props) => {
       {distances.map((distance) => (
         <div
           key={distance.id}
-          className="flex flex-row h-12 w-full mb-5 items-center justify-between border-[#FBBD23] border-2 rounded-md"
+          className="flex flex-row h-12 w-full mb-5 items-center justify-between border-[#FBBD23] border-[1px] rounded-md"
         >
           <div key={distance.id} className="flex w-full justify-center">
-            {distance.value.name}
+            {distance.name}
           </div>
           <button type="button" onClick={handleEdit(distance.id)}>
             Edit

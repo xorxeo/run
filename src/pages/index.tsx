@@ -1,7 +1,6 @@
 import Head from 'next/head';
 import { Inter } from '@next/font/google';
 
-import { Hero } from '@/components/hero/Hero';
 import Events from './events';
 import { Navbar } from '@/components/Navbar';
 import { EventCard } from '@/components/EventCard';
@@ -15,8 +14,7 @@ export default function Home() {
         <title>RUN</title>
       </Head>
       <Navbar />
-      <Hero />
-      <Events>
+      <Events >
         <EventCard title="fsgfdgtrgsdf" />
       </Events>
     </>

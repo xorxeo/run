@@ -1,22 +1,30 @@
 import { FC } from 'react';
+import { nanoid } from 'nanoid';
+
+import { HandleFileDeletePropsType } from './create-event-form/CreateEventForm';
 
 type PreviewFilelistProps = {
   fileNames: string[];
-  onDelete: (name: string) => void;
+  onDeleteProps: HandleFileDeletePropsType;
+  onDelete: (
+    fileName: string,
+    onDeleteProps: HandleFileDeletePropsType
+  ) => void;
+ 
 };
 
 export const PreviewFilelist: FC<PreviewFilelistProps> = (props) => {
-  const { fileNames, onDelete } = props;
+  const { fileNames, onDelete, onDeleteProps } = props;
 
-  const handleDelete = (name: string) => () => onDelete(name);
+  const handleDelete = (fileName: string) => () =>
+    onDelete(fileName, onDeleteProps);
 
   return (
-    <div>
+    <div className='flex flex-col w-full'>
       {fileNames.map((name) => (
-        <div key={name}>
+        <div key={nanoid()}>
           <span className="mr-1">{name}</span>
           <button type="button" onClick={handleDelete(name)}>
-            {/* Delete */}
             <svg
               className="flex border-[1px] opacity-40 hover:opacity-70 hover:bg-[#FBBD23]"
               height="20"

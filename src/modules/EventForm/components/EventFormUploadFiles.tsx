@@ -9,34 +9,43 @@ import {
   uploadBytes,
   UploadResult,
 } from 'firebase/storage';
-import { useDispatch } from 'react-redux';
-import { addRule } from '../store/eventFormSlice';
 import { InputErrorMessage } from '@/components/text-field/TextFieldErrorMessage';
-import { EventFormValues } from './create-event-form/createForm.schema';
+import { EventFormValues } from '../event-form.schema';
+import {
+  ACCEPTED_IMAGE_MIME_TYPES,
+  ACCEPTED_RULES_MIME_TYPES,
+  FIFTY_KB,
+} from './create-event-form/create-event-form.consts';
+
+export type OnUploadWithIndex = (snapshot: UploadResult, index: number) => void;
+export type OnUpload = (snapshot: UploadResult) => void;
 
 type EventFormUploadFilesProps = {
   register?: UseFormRegister<EventFormValues>;
-  setUploadFiles: Dispatch<SetStateAction<File[]>>;
-  formState: FormState<EventFormValues>;
-  inputName: keyof EventFormValues;
+  formState: FormState<any>;
+  inputName?: string;
+  label: string;
   acceptTypes?: string;
   errors?: FieldErrors;
-  onUpload: (snapshot: UploadResult) => void;
+  onUpload: OnUpload;
+  collectionName: string;
 };
 
 export const EventFormUploadFiles: FC<EventFormUploadFilesProps> = (props) => {
   const {
     register,
-    setUploadFiles,
     formState,
     inputName,
+    label,
     acceptTypes,
     onUpload,
+    collectionName,
   } = props;
 
-  const { ref, ...rulesInputOptions } = register?.(inputName) ?? {};
+  const { ref, ...rulesInputOptions } =
+    register?.(inputName as keyof EventFormValues) ?? {};
 
-  const uploadRulesFilesRef = useRef<HTMLInputElement | null>(null);
+  const uploadFilesRef = useRef<HTMLInputElement | null>(null);
 
   const { errors } = formState;
 
@@ -46,37 +55,41 @@ export const EventFormUploadFiles: FC<EventFormUploadFilesProps> = (props) => {
     console.log('in change');
 
     if (files?.length) {
-      setUploadFiles((uploadFiles) => [...uploadFiles, ...files]);
-
       const storage = getStorage();
       for (let file of files) {
-        const { name } = file;
-        const storageRef = fireBaseRef(storage, `test/${name}`);
-
-        // 'file' comes from the Blob or File API
-        uploadBytes(storageRef, file).then(
-          (snapshot) => {
-            console.log('Uploaded a blob or file!', snapshot);
-            onUpload(snapshot);
-            console.log('in change', snapshot);
-          }
-          // TODO: catch error
-        );
+        const { name, size, type } = file;
+        if (
+          size < FIFTY_KB &&
+          (ACCEPTED_IMAGE_MIME_TYPES.includes(type) ||
+            ACCEPTED_RULES_MIME_TYPES.includes(type))
+        ) {
+          const storageRef = fireBaseRef(storage, `${collectionName}/${name}`);
+          // 'file' comes from the Blob or File API
+          uploadBytes(storageRef, file)
+            .then((snapshot) => {
+              console.log('Uploaded a blob or file!', snapshot);
+              onUpload(snapshot);
+            })
+            .catch((error) => {
+              console.log(error);
+            });
+        } else {
+          // TODO: invalid files
+          console.log('invalid file size or type', name);
+        }
       }
-      console.log('files in change', files);
-      console.log('in change', errors.rules);
     }
   };
 
   return (
-    <div className="flex flex-col items-center rounded-md p-5 max-w-[100%] border-b-[1px] border-gray-300">
-      <h1 className="mb-5">Rules and regulations</h1>
+    <div className="upload flex flex-col items-center rounded-md max-w-[100%] rounded-md border border-slate-900 ">
+      <h1 className="">{label}</h1>
 
-      <div className="flex upload container">
-        <div className="flex basis-1/3 w-full justify-center">
+      <div className="upload container flex items-center">
+        <div className="flex  w-full ">
           <label
-            htmlFor="rules"
-            className="flex items-center p-2 h-12 rounded-md border-[1px] border-[#FBBD23] cursor-pointer transition ease-in hover:transition-all 1s hover:bg-[#FBBD23]"
+            htmlFor={inputName}
+            className="flex items-center h-12 rounded-md border-[1px] border-[#FBBD23] cursor-pointer transition ease-in hover:transition-all 1s hover:bg-[#FBBD23]"
           >
             Upload
           </label>
@@ -85,12 +98,12 @@ export const EventFormUploadFiles: FC<EventFormUploadFilesProps> = (props) => {
             {...rulesInputOptions}
             ref={(element) => {
               ref?.(element);
-              uploadRulesFilesRef.current = element;
+              uploadFilesRef.current = element;
             }}
             onChange={handleFilesChange}
-            id="rules"
+            id={inputName}
             multiple
-            // className="opacity-0 w-0"
+            className="h-0"
             type="file"
             accept={acceptTypes}
           />
@@ -98,7 +111,6 @@ export const EventFormUploadFiles: FC<EventFormUploadFilesProps> = (props) => {
       </div>
       <ErrorMessage
         errors={errors}
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         name={inputName as any}
         render={({ message }) => (
           <InputErrorMessage>{message}</InputErrorMessage>

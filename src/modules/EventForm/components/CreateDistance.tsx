@@ -1,81 +1,56 @@
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 
-import Select from '../../../components/Select';
-import { useDatabaseManageData } from '@/services/DatabaseManageData';
 import {
   FC,
-  useCallback,
   useContext,
   useEffect,
-  useRef,
-  useState,
 } from 'react';
 import { FirebaseContext } from '@/containers/FirebaseContainer';
 import { useRouter } from 'next/router';
 import { useDispatch, useSelector } from 'react-redux';
 
-enum ErrorCodes {
-  InvalidSize = 'InvalidSize',
-  InvalidMIMETypes = '.jpg, .jpeg, .png and .webp files are accepted.',
-  RequiredField = 'Field is required',
-}
-
 import {
-  addDistance,
+  addNewDistance,
   editDistance,
-  selectDistances,
+  selectNewDistances,
 } from '../store/eventFormSlice';
+import { DistanceFormValues, distancesSchema } from '../event-form.schema';
 import {
-  DistanceFormValues,
-  distancesSchema,
-} from './create-event-form/createForm.schema';
-import { FormTextField } from '@/components/text-field/FormTextField';
-import { type } from 'os';
+  FormTextField,
+  FormTextFieldProps,
+} from '@/components/text-field/FormTextField';
 import { nanoid } from 'nanoid';
 
-const FIVE_MB = 5_242_880;
-const ONE_MB = 466700;
-const ACCEPTED_IMAGE_MIME_TYPES = [
-  'image/jpeg',
-  'image/jpg',
-  'image/png',
-  'image/webp',
-];
-const URL_REG_EXP =
-  /^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)$/;
+import { InputMask } from '@react-input/mask';
+import {
+  WEB_LINK_INPUT_MASK,
+} from './create-event-form/create-event-form.consts';
+import { inputStyle } from '@/styles/eventFormStyles';
 
 const TIME_REG_EXP = /(?: [01] | 2(?![4 - 9])){ 1}\d{ 1}: [0-5]{ 1}\d{ 1}/;
 
 const DISTANCE_DEFAULT_VALUES: DistanceFormValues = {
   id: '0',
-  value: {
+  
     name: '',
-    cost: 0,
-    distanceLength: 0,
+    cost: '',
+    distanceLength: '',
     linkToDownloadDistanceRoute: '',
     linkToViewDistanceRouteOnTheMap: '',
-    refreshmentPoints: 0,
-    longitude: 0,
-    latitude: 0,
+    refreshmentPoints: '',
+    longitude: '',
+    latitude: '',
     startPointDescription: '',
     startTime: '',
     timeLimit: '',
     totalElevation: '',
-  },
+
 };
-
-const UrlSchema = z.string().regex(URL_REG_EXP).or(z.string().min(0));
-
-let invalidSizeFiles: string[] = [];
-let InvalidMIMETypesFiles: string[] = [];
 
 export const CreateDistance: FC = () => {
   const { db } = useContext(FirebaseContext);
-  const { addDataInDatabase } = useDatabaseManageData();
-  const [isEdit, setIsEdit] = useState<Boolean | null>(null);
-
+ 
   const {
     register,
     handleSubmit,
@@ -86,29 +61,26 @@ export const CreateDistance: FC = () => {
     reset,
   } = useForm<DistanceFormValues>({
     resolver: zodResolver(distancesSchema),
-    mode: 'onBlur',
+    mode: 'onChange',
     // TODO: validate onBlur
-    reValidateMode: 'onChange',
+    reValidateMode: 'onBlur',
     defaultValues: DISTANCE_DEFAULT_VALUES,
   });
 
   const router = useRouter();
   const { id: distanceId } = router.query;
-
-  const { errors } = formState;
-
   const dispatch = useDispatch();
-  const storedDistances = useSelector(selectDistances);
+  const storedDistances = useSelector(selectNewDistances);
 
   const editedDistance = storedDistances.find((distance) => {
     return distance.id === distanceId;
   });
 
+  const { errors } = formState;
+
   useEffect(() => {
     if (editedDistance) {
-      if (editedDistance) {
-        reset(editedDistance);
-      }
+      reset(editedDistance);
     } else {
       setValue('id', nanoid());
     }
@@ -116,138 +88,160 @@ export const CreateDistance: FC = () => {
 
   const setDataFromForm = (rawData: DistanceFormValues) => {
     const parsedData = distancesSchema.parse(rawData);
-
     return parsedData;
   };
 
   const onSubmit: SubmitHandler<DistanceFormValues> = async (data) => {
-    console.log('submitting...');
+  
     try {
       setDataFromForm(data);
-
       if (editedDistance) {
         console.log('edit');
-
         dispatch(editDistance(data));
       } else {
         console.log('add');
-        dispatch(addDistance(data));
+        dispatch(addNewDistance(data));
       }
-
-      // console.log("onSubmit dataObject", dataObject);
       // await addDataInDatabase(db, "distances", "event 1", dataObject)
       router.back();
     } catch (error) {
       if (error instanceof Error) {
-        console.log(error);
+     
         setError('root', { message: error.message });
       }
     }
   };
 
+
   return (
-    <div className="flex flex-col m-auto bg-slate-200  h-[60%] w-[80%] hero-content shadow-md rounded-md">
+    <div className="flex flex-col m-auto h-[60%] w-[80%] hero-content shadow-md rounded-md">
       Create distance
-      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col w-[40%]">
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="flex flex-col w-[80%] lg:w-[55%] gap-3"
+      >
         <input type="hidden" {...register('id')} />
 
-        <div>
+        <FormTextField
+          name="name"
+          placeholder="distance name"
+          type="text"
+          autoFocus
+          control={control}
+          label="Distance name"
+          style={inputStyle}
+        />
+
+        <FormTextField
+          name="cost"
+          placeholder="distance cost"
+          control={control}
+          type="text"
+          label="Cost"
+          mask={'000 000 000 000'}
+          replacement={'0'}
+          style={inputStyle}
+        />
+
+        <FormTextField
+          name="distanceLength"
+          control={control}
+          type="text"
+          label="Distance length"
+          placeholder="distance length in meters"
+          style={inputStyle}
+        />
+
+        <InputMask<FormTextFieldProps>
+          component={FormTextField}
+          name="linkToDownloadDistanceRoute"
+          type="text"
+          control={control}
+          label="Link to download distance route"
+          placeholder="https://www.example.com"
+          mask={WEB_LINK_INPUT_MASK.mask}
+          replacement={WEB_LINK_INPUT_MASK.replacement}
+          style={inputStyle}
+        />
+
+        <InputMask<FormTextFieldProps>
+          component={FormTextField}
+          name="linkToViewDistanceRouteOnTheMap"
+          control={control}
+          label="Link to view distance route on the map"
+          placeholder="https://www.example.com"
+          mask={WEB_LINK_INPUT_MASK.mask}
+          replacement={WEB_LINK_INPUT_MASK.replacement}
+          style={inputStyle}
+        />
+
+        <FormTextField
+          name="refreshmentPoints"
+          control={control}
+          type="text"
+          label="Refreshment points"
+          placeholder="number of food outlets"
+          style={inputStyle}
+        />
+
+        <span className="flex justify-center">Start point</span>
+        <FormTextField
+          name="startPointDescription"
+          control={control}
+          label="Description"
+          placeholder="start point description"
+          style={inputStyle}
+        />
+
+        <div className="flex flex-row space-x-2">
           <FormTextField
-            name="value.name"
-            placeholder="name"
+            name="longitude"
             type="text"
-            autoFocus
             control={control}
+            placeholder="longitude"
+            label="Start point longitude"
+            min={-180}
+            max={180}
+            style={inputStyle}
+          />
+          <FormTextField
+            name="latitude"
+            type="text"
+            control={control}
+            label="Start point latitude"
+            placeholder="latitude"
+            min={-90}
+            max={90}
+            style={inputStyle}
           />
         </div>
 
-        <div>
-          <FormTextField
-            name="value.cost"
-            control={control}
-            type="number"
-            label="Cost"
-          />
-        </div>
+        <InputMask<FormTextFieldProps>
+          component={FormTextField}
+          name="startTime"
+          control={control}
+          label="Start time"
+          placeholder='start time in format "HH:MM"'
+          mask={'__:__'}
+          replacement={'_'}
+          style={inputStyle}
+        />
 
-        <div>
-          <FormTextField
-            name="value.distanceLength"
-            control={control}
-            type="number"
-            label="Distance length"
-          />
-        </div>
+        <FormTextField
+          name="timeLimit"
+          control={control}
+          label="Time limit"
+          placeholder="time limit"
+          style={inputStyle}
+        />
 
-        <div>
-          <FormTextField
-            name="value.linkToDownloadDistanceRoute"
-            control={control}
-            label="Link to download distance route"
-          />
-        </div>
-
-        <div>
-          <FormTextField
-            name="value.linkToViewDistanceRouteOnTheMap"
-            control={control}
-            label="Link to view distance route on the map"
-          />
-        </div>
-
-        <div>
-          <FormTextField
-            name="value.refreshmentPoints"
-            control={control}
-            type="number"
-            label="Refreshment points"
-          />
-        </div>
-
-        <div>
-          <span>Start point</span>
-          <FormTextField
-            name="value.startPointDescription"
-            control={control}
-            label="Start point description"
-          />
-          <div className="flex flex-row space-x-2">
-            <FormTextField
-              name="value.longitude"
-              control={control}
-              label="Start point longitude"
-            />
-            <FormTextField
-              name="value.latitude"
-              control={control}
-              label="Start point latitude"
-            />
-          </div>
-        </div>
-
-        <div>
-          <FormTextField
-            name="value.startTime"
-            control={control}
-            label="Start time"
-          />
-        </div>
-
-        <div>
-          <FormTextField
-            name="value.timeLimit"
-            control={control}
-            label="Time limit"
-          />
-        </div>
-
-        <div>
-          <FormTextField
-            name="value.totalElevation"
-            control={control}
-            label="Total elevation"
-          />
-        </div>
+        <FormTextField
+          name="totalElevation"
+          control={control}
+          label="Total elevation"
+          placeholder="total elevation in meters"
+          style={inputStyle}
+        />
 
         {/* <div>
           <h1>Upload photos</h1>
@@ -276,11 +270,11 @@ export const CreateDistance: FC = () => {
         </div> */}
 
         <div className="flex justify-between">
+          <button type="button" onClick={() => router.back()}>
+            Cancel
+          </button>
           <button onClick={handleSubmit(onSubmit)}>Submit</button>
         </div>
-        <button type="button" onClick={() => router.back()}>
-          Cancel
-        </button>
       </form>
     </div>
   );

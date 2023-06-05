@@ -1,4 +1,4 @@
-import { DetailedHTMLProps, FC, InputHTMLAttributes, forwardRef } from 'react';
+import { DetailedHTMLProps, InputHTMLAttributes, forwardRef } from 'react';
 
 export type InputSize = 'medium' | 'large';
 export type InputType = 'text' | 'email';
@@ -15,16 +15,18 @@ const sizeMap: { [key in InputSize]: string } = {
 
 export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
   ({ label, className, /*size,*/ ...restProps }, ref) => {
-    // console.log('value', restProps.value);
     return (
       <div className="flex flex-col justify-center items-center w-full">
-        {label && <label className="mb-5">{label}</label>}
+        {label && <label className="">{label}</label>}
         <input
           ref={ref}
-          className={`w-full h-12 rounded-md bg-gray-100 focus:outline-none outline-none`}
+          //  className={`w-full h-12 rounded-md bg-gray-100 focus:outline-none outline-none`}
+          className={className}
           {...restProps}
         />
       </div>
     );
   }
 );
+
+TextField.displayName = 'TextField';

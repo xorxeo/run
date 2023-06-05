@@ -1,65 +1,76 @@
-import { ErrorMessage } from '@hookform/error-message';
+import { DetailedHTMLProps, TextareaHTMLAttributes, forwardRef } from 'react';
 import {
-  ChangeEventHandler,
-  DetailedHTMLProps,
-  FocusEvent,
-  forwardRef,
-  TextareaHTMLAttributes,
-  useState,
-} from 'react';
-import {
-  FieldErrors,
-  FieldValues,
-  UseFormRegister,
-  Path,
+  Controller,
+  Control,
 } from 'react-hook-form';
 import { InputErrorMessage } from './text-field/TextFieldErrorMessage';
 
-type TextAreaProps<TFormValues extends FieldValues> = {
-  name: Path<TFormValues>;
-  register: UseFormRegister<TFormValues>;
-  // value?: string;
-  // onChange?: ChangeEventHandler<HTMLTextAreaElement>;
-  // onBlur?: ChangeEventHandler<HTMLTextAreaElement>;
-  invalid?: string;
-  errors: FieldErrors;
+export type TextAreaProps = {
+  control: Control<any>;
+  name: string;
+  className?: string;
+  label?: string;
+  pattern?: string;
+  title?: string;
+  mask?: string;
+  replacement?: any;
+  placeholder?: string;
+  style: (state: boolean) => string;
 } & DetailedHTMLProps<
   TextareaHTMLAttributes<HTMLTextAreaElement>,
   HTMLTextAreaElement
 >;
 
-// type TextAreaProps = DetailedHTMLProps<
-//   TextareaHTMLAttributes<HTMLTextAreaElement>,
-//   HTMLTextAreaElement
-// > & { options: TextAreaOptions };
+export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
+  (props, ref) => {
+    const {
+      style,
+      control,
+      name,
+      label,
+      pattern,
+      title,
+      placeholder,
+      ...restProps
+    } = props;
 
-const TextArea = <TFormValues extends Record<string, unknown>>({
-  errors,
-  name,
-  register,
-}: TextAreaProps<TFormValues>) => {
-  return (
-    <>
-      <textarea
-        {...(register && register(name))}
-        name={name}
-        // className={`${
-        //   invalid === 'true' ? 'border-red-600' : ' focus:border-[#FBBD23]'
-        // } textarea bg-gray-100 w-full focus:outline-none  resize-y outline-none  min-h-[100px] max-h-[200px]`}
-        // ref={ref}
-      />
+    const inputRef = ref;
 
-      <ErrorMessage
-        errors={errors}
-        name={name as any}
-        render={({ message }) => (
-          <InputErrorMessage>{message}</InputErrorMessage>
+   
+    return (
+      <Controller
+        render={({
+          field: { onChange, onBlur, value, name, ref },
+          fieldState: { invalid, isTouched, isDirty, error },
+        }) => (
+          <div className="flex flex-col justify-center items-center w-full rounded-md border border-slate-900 ">
+            {label && (
+              <label className="flex w-full justify-center">{label}</label>
+            )}
+            <textarea
+              {...restProps}
+              ref={inputRef}
+              value={value}
+              onChange={onChange}
+              onBlur={onBlur}
+              title={title}
+              placeholder={placeholder}
+              // className={`${
+              //   invalid === true ? 'border-red-600' : ' focus:border-[#FBBD23]'
+              // } placeholder: pt- bg-gray-100 border-0 border-b-2 w-full focus:outline-none resize-y outline-none  min-h-[100px] max-h-[200px]`}
+              className={style(invalid)}
+            />
+            {error && <InputErrorMessage>{error.message}</InputErrorMessage>}
+          </div>
         )}
+        name={name}
+        control={control}
+        rules={{ required: true }}
       />
-    </>
-  );
-};
+    );
+  }
+);
 
 TextArea.displayName = 'TextArea';
 
-export default TextArea;
+// export default TextArea;
