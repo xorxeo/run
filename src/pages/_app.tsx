@@ -1,14 +1,22 @@
-import type { AppProps } from "next/app";
-import { FirebaseContainer } from "@/containers/FirebaseContainer";
-import { AuthUserProvider } from "src/containers/AuthUserContainer"
-import "@/styles/globals.css";
+import type { AppProps } from 'next/app';
+import { Provider } from 'react-redux';
 
-export default function App({ Component, pageProps }: AppProps) {
+import { FirebaseContainer } from '@/containers/FirebaseContainer';
+import { AuthUserProvider } from '@/containers/AuthUserContainer';
+import { storeWrapper } from '@/store';
+import '@/styles/globals.css';
+
+export default function App({ Component, ...rest }: AppProps) {
+  const { store, props } = storeWrapper.useWrappedStore(rest);
+  const { pageProps } = props;
+
   return (
-    <FirebaseContainer>
-      <AuthUserProvider>
-        <Component {...pageProps} />
-      </AuthUserProvider>
-    </FirebaseContainer>
+    <Provider store={store}>
+      <FirebaseContainer>
+        <AuthUserProvider>
+          <Component {...pageProps} />
+        </AuthUserProvider>
+      </FirebaseContainer>
+    </Provider>
   );
 }

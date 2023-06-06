@@ -1,17 +1,12 @@
 // import "Auth.module.css"
-import { useRouter } from "next/router";
-import { FirebaseError } from "firebase/app";
-import { useForm} from "react-hook-form";
-import * as z from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from 'next/router';
+import { FirebaseError } from 'firebase/app';
+import { useForm } from 'react-hook-form';
+import * as z from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 
-import { FirebaseErrorCodes } from "./auth.types";
-<<<<<<< HEAD
-import { useAuth } from "@/containers/AuthUserContainer";
-=======
-import * as z from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
->>>>>>> c3d9d77 (add zod vakidation in signup/signin forms)
+import { FirebaseErrorCodes } from './auth.types';
+import { useAuth } from '@/containers/AuthUserContainer';
 
 type Inputs = {
   email: string;
@@ -19,8 +14,8 @@ type Inputs = {
 };
 
 const schema = z.object({
-  email: z.string().email({ message: "invalid email address" }),
-  password: z.string().min(6, { message: "required min 6 symbols" }),
+  email: z.string().email({ message: 'invalid email address' }),
+  password: z.string().min(6, { message: 'required min 6 symbols' }),
 });
 
 export const SignUp = () => {
@@ -38,20 +33,20 @@ export const SignUp = () => {
   const onSubmit = handleSubmit(async ({ email, password }) => {
     try {
       await createUserEmailAndPassword(email, password);
-      router.push("/");
+      router.push('/');
     } catch (error) {
       const { code } = error as FirebaseError;
 
       if (code === FirebaseErrorCodes.WEAK_PASSWORD) {
-        setError("password", { message: code });
+        setError('password', { message: code });
         return;
       }
       if (code === FirebaseErrorCodes.INVALID_EMAIL) {
-        setError("email", { message: code });
+        setError('email', { message: code });
         return;
       }
       if (code === FirebaseErrorCodes.EMAIL_EXISTS) {
-        setError("email", { message: code });
+        setError('email', { message: code });
         return;
       }
     }
@@ -66,28 +61,32 @@ export const SignUp = () => {
           <div className="form-control font-light">
             <label className="label pl-0 h-12">
               <span className="label-text">Email address</span>
-              {errors.email && <div className="text-red-700">{errors.email.message}</div>}
+              {errors.email && (
+                <div className="text-red-700">{errors.email.message}</div>
+              )}
             </label>
             <input
               type="email"
               autoComplete="on"
               placeholder="email"
               className="input input-bordered"
-              {...register("email", { required: true })}
+              {...register('email', { required: true })}
             />
           </div>
 
           <div className="form-control font-light">
             <label className="label pl-0 h-12">
               <span className="label-text">Password</span>
-              {errors.password && <div className="text-red-700">{errors.password.message}</div>}
+              {errors.password && (
+                <div className="text-red-700">{errors.password.message}</div>
+              )}
             </label>
             <input
               type="password"
               autoComplete="on"
               placeholder="password"
               className="input input-bordered"
-              {...register("password", { required: true })}
+              {...register('password', { required: true })}
             />
           </div>
 

@@ -1,11 +1,12 @@
-import { useRouter } from "next/router";
-import { FirebaseError } from "firebase/app";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from 'next/router';
+import { FirebaseError } from 'firebase/app';
+import { useForm } from 'react-hook-form';
+import * as z from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 
-import { FirebaseErrorCodes } from "./auth.types";
-import { useAuth } from "@/containers/AuthUserContainer";
+import { FirebaseErrorCodes } from './auth.types';
+import { useAuth } from '@/containers/AuthUserContainer';
+import { MouseEventHandler } from 'react';
 
 type Inputs = {
   email: string;
@@ -13,10 +14,9 @@ type Inputs = {
 };
 
 const schema = z.object({
-  email: z.string().email({ message: "invalid email address" }),
-  password: z.string().min(6, { message: "required min 6 symbols" }),
+  email: z.string().email({ message: 'invalid email address' }),
+  password: z.string().min(6, { message: 'required min 6 symbols' }),
 });
-
 
 export const SignIn = () => {
   const {
@@ -33,21 +33,25 @@ export const SignIn = () => {
   const onSubmit = handleSubmit(async ({ email, password }) => {
     try {
       await signInEmailAndPassword(email, password);
-      router.push("/");
+      router.push('/');
     } catch (error) {
       const { code } = error as FirebaseError;
 
       if (code === FirebaseErrorCodes.EMAIL_NOT_FOUND) {
-        setError("email", { message: code });
+        setError('email', { message: code });
         return;
       }
       if (code === FirebaseErrorCodes.INVALID_PASSWORD) {
-        setError("password", { message: code });
+        setError('password', { message: code });
         return;
       }
-      setError("root", { message: code });
+      setError('root', { message: code });
     }
   });
+
+  const handleSignIn: MouseEventHandler<HTMLButtonElement> = () => {
+    router.push('/registration');
+  };
 
   return (
     <div className="flex h-screen w-screen bg-slate-100 ">
@@ -60,28 +64,32 @@ export const SignIn = () => {
           <div className="form-control font-light">
             <label className="label pl-0 h-12">
               <span className="label-text">Email address</span>
-              {errors.email && <div className="text-red-700">{errors.email.message}</div>}
+              {errors.email && (
+                <div className="text-red-700">{errors.email.message}</div>
+              )}
             </label>
             <input
               type="email"
               autoComplete="on"
               placeholder="email"
               className="input input-bordered "
-              {...register("email", { required: true })}
+              {...register('email', { required: true })}
             />
           </div>
 
           <div className="form-control font-light">
             <label className="label pl-0 h-12">
               <span className="label-text">Password</span>
-              {errors.password && <div className="text-red-700">{errors.password.message}</div>}
+              {errors.password && (
+                <div className="text-red-700">{errors.password.message}</div>
+              )}
             </label>
             <input
               type="password"
               autoComplete="on"
               placeholder="password"
               className="input input-bordered "
-              {...register("password", { required: true })}
+              {...register('password', { required: true })}
             />
           </div>
 
@@ -91,17 +99,17 @@ export const SignIn = () => {
             </div>
 
             <button
-              onClick={(e) => {
-                e.preventDefault();
-                router.push("/registration");
-              }}
+              onClick={handleSignIn}
               className="label-text-alt text-sm font-normal"
+              type="button"
             >
               Sign up
             </button>
           </div>
           <div className="flex justify-center h-12 rounded-lg bg-[#FBBD23] font-normal hover:scale-105 transition-transform duration-200 ">
-            <button className="w-[100%]">Sign in</button>
+            <button className="w-[100%]" type="submit">
+              Sign in
+            </button>
           </div>
         </form>
       </div>
