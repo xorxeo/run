@@ -37,6 +37,17 @@ type FormSelectProps = {
   HTMLSelectElement
 >;
 
+function transformDataToOptions(data: DataForSelectOptions) {
+  let transformToOptionsData: selectOptions[] = [];
+  for (let item of data) {
+    transformToOptionsData.push({
+      title: item.name,
+      value: item,
+    });
+  }
+  return transformToOptionsData;
+}
+
 export const FormMultiSelect: FC<FormSelectProps> = (props) => {
   const {
     dataForSelectOptions,
@@ -78,30 +89,7 @@ export const FormMultiSelect: FC<FormSelectProps> = (props) => {
     return () => {
       dispatch(reducer(optionsState));
     };
-  }, [dispatch, optionsState]);
-
-  function isDistancesArray(
-    data: DataForSelectOptions
-  ): data is DistanceFormValues[] {
-    return 'value' in data[0];
-  }
-
-  function isPartnersArray(
-    data: DataForSelectOptions
-  ): data is PartnerFormValues[] {
-    return 'link' in data[0];
-  }
-
-  function transformDataToOptions(data: DataForSelectOptions) {
-    let transformToOptionsData: selectOptions[] = [];
-    for (let item of data) {
-      transformToOptionsData.push({
-        title: item.name,
-        value: item,
-      });
-    }
-    return transformToOptionsData;
-  }
+  }, [dispatch, optionsState, reducer]);
 
   const handleSelectItem = (
     event: ChangeEvent<HTMLSelectElement>,

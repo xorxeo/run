@@ -1,56 +1,38 @@
-import { SubmitHandler, useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-
-import {
-  FC,
-  useContext,
-  useEffect,
-} from 'react';
-import { FirebaseContext } from '@/containers/FirebaseContainer';
+import { FC, useContext, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useDispatch, useSelector } from 'react-redux';
-
-import {
-  addNewDistance,
-  editDistance,
-  selectNewDistances,
-} from '../store/eventFormSlice';
-import { DistanceFormValues, distancesSchema } from '../event-form.schema';
-import {
-  FormTextField,
-  FormTextFieldProps,
-} from '@/components/text-field/FormTextField';
+import { SubmitHandler, useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { InputMask } from '@react-input/mask';
 import { nanoid } from 'nanoid';
 
-import { InputMask } from '@react-input/mask';
-import {
-  WEB_LINK_INPUT_MASK,
-} from './create-event-form/create-event-form.consts';
-import { inputStyle } from '@/styles/eventFormStyles';
+import { FirebaseContext } from '@/containers/FirebaseContainer';
 
-const TIME_REG_EXP = /(?: [01] | 2(?![4 - 9])){ 1}\d{ 1}: [0-5]{ 1}\d{ 1}/;
+import { DistanceFormValues, distancesSchema } from '../event-form.schema';
+import { FormTextField, FormTextFieldProps } from '@/components/text-field/FormTextField';
+import { addNewDistance, editDistance, selectNewDistances } from '../store/eventFormSlice';
+import { WEB_LINK_INPUT_MASK } from './create-event-form/create-event-form.consts';
+import { inputStyle } from '@/styles/eventFormStyles';
 
 const DISTANCE_DEFAULT_VALUES: DistanceFormValues = {
   id: '0',
-  
-    name: '',
-    cost: '',
-    distanceLength: '',
-    linkToDownloadDistanceRoute: '',
-    linkToViewDistanceRouteOnTheMap: '',
-    refreshmentPoints: '',
-    longitude: '',
-    latitude: '',
-    startPointDescription: '',
-    startTime: '',
-    timeLimit: '',
-    totalElevation: '',
-
+  name: '',
+  cost: '',
+  distanceLength: '',
+  linkToDownloadDistanceRoute: '',
+  linkToViewDistanceRouteOnTheMap: '',
+  refreshmentPoints: '',
+  longitude: '',
+  latitude: '',
+  startPointDescription: '',
+  startTime: '',
+  timeLimit: '',
+  totalElevation: '',
 };
 
 export const CreateDistance: FC = () => {
   const { db } = useContext(FirebaseContext);
- 
+
   const {
     register,
     handleSubmit,
@@ -76,8 +58,6 @@ export const CreateDistance: FC = () => {
     return distance.id === distanceId;
   });
 
-  const { errors } = formState;
-
   useEffect(() => {
     if (editedDistance) {
       reset(editedDistance);
@@ -92,7 +72,6 @@ export const CreateDistance: FC = () => {
   };
 
   const onSubmit: SubmitHandler<DistanceFormValues> = async (data) => {
-  
     try {
       setDataFromForm(data);
       if (editedDistance) {
@@ -106,12 +85,10 @@ export const CreateDistance: FC = () => {
       router.back();
     } catch (error) {
       if (error instanceof Error) {
-     
         setError('root', { message: error.message });
       }
     }
   };
-
 
   return (
     <div className="flex flex-col m-auto h-[60%] w-[80%] hero-content shadow-md rounded-md">

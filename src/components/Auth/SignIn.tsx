@@ -32,8 +32,6 @@ export const SignIn = () => {
 
   const onSubmit = handleSubmit(async ({ email, password }) => {
     try {
-      console.log('e313');
-
       await signInEmailAndPassword(email, password);
       router.push('/');
     } catch (error) {
@@ -53,7 +51,6 @@ export const SignIn = () => {
 
   const handleSignIn: MouseEventHandler<HTMLButtonElement> = () => {
     router.push('/registration');
-    console.log('dsfdfd');
   };
 
   return (

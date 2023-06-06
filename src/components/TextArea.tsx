@@ -55,9 +55,6 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
               onBlur={onBlur}
               title={title}
               placeholder={placeholder}
-              // className={`${
-              //   invalid === true ? 'border-red-600' : ' focus:border-[#FBBD23]'
-              // } placeholder: pt- bg-gray-100 border-0 border-b-2 w-full focus:outline-none resize-y outline-none  min-h-[100px] max-h-[200px]`}
               className={style(invalid)}
             />
             {error && <InputErrorMessage>{error.message}</InputErrorMessage>}

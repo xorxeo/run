@@ -1,34 +1,20 @@
 import { useDispatch, useSelector } from 'react-redux';
 import { UploadResult } from 'firebase/storage';
-import {
-  useFieldArray,
-  useFormContext,
-} from 'react-hook-form';
+import { useFieldArray, useFormContext } from 'react-hook-form';
+
 import { FormTextField } from './../../../components/text-field/FormTextField';
-import {
-  EventFormValues,
-  PartnerFormValues,
-} from '../event-form.schema';
+import { EventFormValues, PartnerFormValues } from '../event-form.schema';
 import { EventFormUploadFiles } from './EventFormUploadFiles';
 import { nanoid } from 'nanoid';
-import {
-  addLogo,
-  deleteLogo,
-  selectLogos,
-} from '../store/eventFormSlice';
+import { addLogo, deleteLogo, selectLogos } from '../store/eventFormSlice';
 import { inputStyle } from '@/styles/eventFormStyles';
 
-const ADD_PARTNERS_DEFAULT_VALUE: PartnerFormValues = {
-  id: '',
-  name: '',
-  link: '',
-  logoName: '',
-};
 
 export type PartnersType = Pick<EventFormValues, 'newPartners'>;
 
 export const AddPartners = () => {
-  const { control, formState, setValue, register } = useFormContext<PartnersType>();
+  const { control, formState, setValue, register } =
+    useFormContext<PartnersType>();
 
   const { fields, append, remove } = useFieldArray({
     name: 'newPartners',
@@ -58,6 +44,15 @@ export const AddPartners = () => {
     remove(index);
   };
 
+  const handleAppendNewItem = () => {
+    append({
+      id: nanoid(),
+      name: '',
+      link: '',
+      logoName: '',
+    });
+  };
+
   // TODO: check logo name - if is the same as the one in firebase, push it in storedLogos
   // probably do this in common upload files method
 
@@ -66,10 +61,7 @@ export const AddPartners = () => {
       {fields.map((field, index) => {
         return (
           <div className="flex flex-col w-full" key={field.id}>
-            <input
-              type="hidden"
-              {...register(`newPartners.${index}.id`)}
-            />
+            <input type="hidden" {...register(`newPartners.${index}.id`)} />
 
             <FormTextField
               control={control}
@@ -119,17 +111,7 @@ export const AddPartners = () => {
         );
       })}
 
-      <button
-        type="button"
-        onClick={() =>
-          append({
-            id: nanoid(),
-            name: '',
-            link: '',
-            logoName: '',
-          })
-        }
-      >
+      <button type="button" onClick={() => handleAppendNewItem()}>
         Add New Partner
       </button>
     </div>

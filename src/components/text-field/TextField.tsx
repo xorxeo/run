@@ -20,7 +20,6 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
         {label && <label className="">{label}</label>}
         <input
           ref={ref}
-          //  className={`w-full h-12 rounded-md bg-gray-100 focus:outline-none outline-none`}
           className={className}
           {...restProps}
         />

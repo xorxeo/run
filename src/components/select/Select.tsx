@@ -21,7 +21,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
           ref={ref}
           value="Choose values"
           {...restProps}
-          className=" rounded-md w-full   border-[1px] border-[#FBBD23] h-12 outline-none"
+          className=" rounded-md w-full border-[1px] border-[#FBBD23] h-12 outline-none"
         >
           <option value="Choose values" disabled>
             Choose values

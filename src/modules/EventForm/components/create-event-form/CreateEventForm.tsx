@@ -209,7 +209,7 @@ export const CreateEventForm = () => {
 
   return (
     <div className=" flex flex-col items-center h-[100%] w-[100%] ">
-      <div className="flex flex-col items-center  w-[80%] lg:w-[55%] h-[100%] shadow-md rounded-md">
+      <div className="flex flex-col items-center  w-[90%] lg:w-[55%] md:w-[85%] h-[100%] shadow-md rounded-md">
         <FormProvider {...methods}>
           <form
             onSubmit={methods.handleSubmit(onSubmit)}

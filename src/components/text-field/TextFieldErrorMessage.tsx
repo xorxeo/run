@@ -1,9 +1,5 @@
 import { FC, PropsWithChildren } from 'react';
 
-// export type InputErrorMessageType = {
-//   className?: string;
-// };
-
 export const InputErrorMessage: FC<PropsWithChildren> = (props) => {
   const { children } = props;
   return (
