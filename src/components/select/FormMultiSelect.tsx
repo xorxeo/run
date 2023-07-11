@@ -12,12 +12,15 @@ import {
   ControllerRenderProps,
   FieldErrors,
 } from 'react-hook-form';
-import { Select, selectOptions } from './Select';
+import { Select, SelectOptions } from './Select';
 import {
   DistanceFormValues,
   PartnerFormValues,
 } from '@/modules/EventForm/event-form.schema';
 import { useDispatch } from 'react-redux';
+import Image from 'next/image';
+
+import DeleteIcon from '../../../public/icons/delete-icon.svg';
 
 type DataForSelectOptions = Record<string, string>[];
 
@@ -28,7 +31,7 @@ type FormSelectProps = {
   label?: string;
   placeholder?: string;
   title?: string;
-  storedUnselectedOptions: selectOptions[];
+  storedUnselectedOptions: SelectOptions[];
   reducer: any;
   hasStoredValues?: boolean;
   errors?: FieldErrors;
@@ -38,7 +41,7 @@ type FormSelectProps = {
 >;
 
 function transformDataToOptions(data: DataForSelectOptions) {
-  let transformToOptionsData: selectOptions[] = [];
+  let transformToOptionsData: SelectOptions[] = [];
   for (let item of data) {
     transformToOptionsData.push({
       title: item.name,
@@ -63,9 +66,9 @@ export const FormMultiSelect: FC<FormSelectProps> = (props) => {
     ...restProps
   } = props;
 
-  const [optionsState, setOptionsState] = useState<selectOptions[]>([]);
+  const [optionsState, setOptionsState] = useState<SelectOptions[]>([]);
   const [selectedOptionsState, setSelectedOptionsState] = useState<
-    selectOptions[]
+    SelectOptions[]
   >([]);
 
   const dispatch = useDispatch();
@@ -79,6 +82,7 @@ export const FormMultiSelect: FC<FormSelectProps> = (props) => {
     ) {
       setOptionsState(storedUnselectedOptions);
     } else if (hasStoredValues && storedUnselectedOptions.length === 0) {
+      console.log('here');
       setOptionsState([]);
     } else {
       setOptionsState(selectOptions);
@@ -124,15 +128,15 @@ export const FormMultiSelect: FC<FormSelectProps> = (props) => {
     }
 
     field.onChange(
-      field.value.filter((item: selectOptions[]) => item !== field.value[index])
+      field.value.filter((item: SelectOptions[]) => item !== field.value[index])
     );
   };
 
   const filterSelectOptions = (
     event: ChangeEvent<HTMLSelectElement>,
-    optionsState: selectOptions[]
+    optionsState: SelectOptions[]
   ) => {
-    let filteredSelectOptions: selectOptions[] = [];
+    let filteredSelectOptions: SelectOptions[] = [];
 
     for (let option of optionsState) {
       if (JSON.parse(event.target.value).id !== option.value.id)
@@ -157,25 +161,36 @@ export const FormMultiSelect: FC<FormSelectProps> = (props) => {
           ></Select>
 
           {field.value?.length > 0 && (
-            <ul>
+            <div className="flex flex-col w-full ">
               {field.value.map(
                 (value: Record<string, string>, index: number) => (
-                  <li key={value.id}>
-                    {value.name}
+                  <div
+                    className="flex flex-row w-full min-h-12 justify-between items-center pl-2 pr-2 "
+                    key={value.id}
+                  >
+                    <div className="flex w-[70%] h-[100%] min-h-[2.5rem] items-center justify-center  overflow-hidden border-[#FBBD23] border-[1px] rounded-md">
+                      {value.name}
+                    </div>
+
                     <button
+                      className="flex w-[30%] min-h-[2.5rem] m-0 items-center justify-center border-[1px] hover:bg-[#FBBD23] rounded-md"
                       key={value.id}
-                      style={{ marginLeft: 80 }}
-                      type="button"
                       onClick={() => {
                         handleUnselectItem(field, index);
                       }}
                     >
-                      remove
+                      <Image
+                        className=""
+                        src={DeleteIcon}
+                        alt="delete icon"
+                        height={20}
+                        width={20}
+                      ></Image>
                     </button>
-                  </li>
+                  </div>
                 )
               )}
-            </ul>
+            </div>
           )}
         </div>
       )}

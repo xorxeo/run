@@ -1,11 +1,13 @@
-import { useRouter } from 'next/router';
+'use client'
+
+import { useRouter } from 'next/navigation';
 import { FirebaseError } from 'firebase/app';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 import { FirebaseErrorCodes } from './auth.types';
-import { useAuth } from '@/containers/AuthUserContainer';
+// import { useAuth } from '@/containers/AuthUserContainer';
 import { MouseEventHandler } from 'react';
 
 type Inputs = {
@@ -28,11 +30,11 @@ export const SignIn = () => {
 
   const router = useRouter();
 
-  const { signInEmailAndPassword, admin } = useAuth();
+  // const { signInEmailAndPassword, admin } = useAuth();
 
   const onSubmit = handleSubmit(async ({ email, password }) => {
     try {
-      await signInEmailAndPassword(email, password);
+      // await signInEmailAndPassword(email, password);
       router.push('/');
     } catch (error) {
       const { code } = error as FirebaseError;

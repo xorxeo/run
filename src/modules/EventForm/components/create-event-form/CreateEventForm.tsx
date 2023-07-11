@@ -1,10 +1,12 @@
+'use client';
+
 import { useEffect, useState } from 'react';
 
 import { SubmitHandler, useForm, FormProvider } from 'react-hook-form';
 import Link from 'next/link';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 
-import { useDispatch, useSelector } from 'react-redux';
+import { useAppDispatch, useAppSelector } from '../../../../app/redux/hooks';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 
@@ -19,32 +21,34 @@ import {
 
 import { TextArea } from '../../../../components/TextArea';
 
-import { EventFormInputs, EventUploadFile } from '../../event-form.typings';
+import {
+  eventFormInputsNames,
+  EventUploadFile,
+} from '../../event-form.typings';
 import { EventFormUploadFiles } from '../EventFormUploadFiles';
 import {
-  InputValues,
+  EventFormInputValues,
   addImages,
   addRule,
-  deleteNewDistance,
+  // deleteNewDistance,
   deleteImage,
   deleteRule,
-  selectNewDistances,
+  // selectNewDistances,
   selectImages,
-  selectInputValues,
+  selectEventFormValues,
   selectRules,
-  storeInputValues,
+  storeEventFormValues,
   selectPartnersStoredSelectOptions,
   selectDistancesStoredSelectOptions,
   partnersSelectOptions,
   distancesSelectOptions,
-} from '../../store/eventFormSlice';
+  selectLogos,
+  selectDistancesFromDatabase,
+} from '../../../../app/redux/features/eventFormSlice';
 import { PreviewFilelist } from '../PreviewFilelist';
-import {
-  EventFormValues,
-  eventFormSchema,
-} from '../../event-form.schema';
+import { EventFormValues, eventFormSchema } from '../../event-form.schema';
 import { FormTextField } from '@/components/text-field/FormTextField';
-import { PreviewDistancesList } from '../PreviewDistancesList';
+import { PreviewEntitiesList } from '../PreviewEntitiesList';
 import {
   ACCEPTED_IMAGE_MIME_TYPES,
   ACCEPTED_RULES_MIME_TYPES,
@@ -52,25 +56,40 @@ import {
   PARTNERS_FROM_DATABASE,
 } from '@/modules/EventForm/components/create-event-form/create-event-form.consts';
 import { AddPartners } from '../AddPartners';
-import { initFirebase } from '../../../../firebase/initFirebase';
 import { FormMultiSelect } from '@/components/select/FormMultiSelect';
 
 import { inputStyle, textAreaStyle } from '../../../../styles/eventFormStyles';
+import {
+  deleteFileFromStorageWithPath,
+  writeDocument,
+} from '@/firebase/getData';
+import { nanoid } from 'nanoid';
+import FirebaseService from '@/firebase/firebaseService';
+import { UseFormManager } from '@/services/hooks/useFormManager';
+import firebaseApp from '@/firebase/initFirebase';
 
 export type HandleFileDeletePropsType = {
   // fileName: string;
   reducer: ReturnType<() => any>;
   inputName: keyof EventFormValues;
   storedFiles: EventUploadFile[];
+  idSubCollection?: string;
 };
 
-export const CreateEventForm = () => {
+export default function CreateEventForm({
+  params,
+}: {
+  params: {
+    id: string;
+  };
+}) {
   const [eventNameState, setEventNameState] = useState('');
   const methods = useForm<EventFormValues>({
     resolver: zodResolver(eventFormSchema),
     mode: 'onChange',
     reValidateMode: 'onBlur',
     defaultValues: {
+      id: nanoid(),
       eventName: eventNameState,
       information: '',
       newDistances: [],
@@ -82,47 +101,64 @@ export const CreateEventForm = () => {
     },
   });
 
-  const { db } = initFirebase();
+  const { handleEntityEdit, handleEntityDelete } = UseFormManager();
 
   const router = useRouter();
 
   const { errors } = methods.formState;
 
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
-  const storedRules = useSelector(selectRules);
+  const storedRules = useAppSelector(selectRules);
 
-  const storedImages = useSelector(selectImages);
+  const storedImages = useAppSelector(selectImages);
+  const storedLogos = useAppSelector(selectLogos);
 
-  const storedInputValues = useSelector(selectInputValues);
+  const storedEventFormValues = useAppSelector(selectEventFormValues);
 
-  const storedDistances = useSelector(selectNewDistances);
+  const storedDistances = useAppSelector(selectDistancesFromDatabase);
 
   const storage = getStorage();
 
-  const storedPartnersUnselectedOptions = useSelector(
+  const storedPartnersUnselectedOptions = useAppSelector(
     selectPartnersStoredSelectOptions
   );
 
-  const storedDistancesUnselectedOptions = useSelector(
+  const storedDistancesUnselectedOptions = useAppSelector(
     selectDistancesStoredSelectOptions
   );
 
-  if (db) {
-    const eventsCollectionRef = collection(db, 'events');
-    console.log('eventsCollectionRef from eventform', eventsCollectionRef)
-  }
+  const setInputsValues = () => {
+    // console.log('storedInputValues', storedInputValues);
+    Object.keys(storedEventFormValues).forEach((key) => {
+      methods.setValue(
+        key as keyof EventFormValues,
+        storedEventFormValues[key as keyof EventFormValues]
+      );
+    });
+  };
+
+  useEffect(() => {
+    methods.setValue('images', storedImages);
+    // console.log('useEffect storedImages', storedImages);
+  }, [storedImages]);
+
+  useEffect(() => {
+    methods.setValue('rules', storedRules);
+    // console.log('useEffect storedRules', storedRules);
+  }, [storedRules]);
+
+  useEffect(() => {
+    // console.log('useEffect storedLogos', storedLogos);
+  }, [storedLogos]);
+
+  useEffect(() => {
+    setInputsValues();
+  }, [storedEventFormValues]);
 
   useEffect(() => {
     // TODO: reset values when event is created
-
-    Object.keys(storedInputValues).forEach((key) => {
-      methods.setValue(
-        key as keyof EventFormValues,
-        storedInputValues[key as keyof EventFormValues]
-      );
-    });
-
+    // console.log('useEffect storedEventFormValues', storedEventFormValues);
     return () => handleGetInputValues();
   }, []);
 
@@ -133,9 +169,8 @@ export const CreateEventForm = () => {
   const onSubmit: SubmitHandler<EventFormValues> = async (data) => {
     try {
       setData(data);
-      // const eventRef = doc(collection(db!, 'events'));
-      setDoc(doc(collection(db!, 'events')), data);
-
+      console.log('CreateEventForm submit data', data);
+      await firebaseApp.addDocument('events', data);
     } catch (error) {
       if (error instanceof Error) {
         methods.setError('root', { message: error.message });
@@ -143,20 +178,20 @@ export const CreateEventForm = () => {
     }
   };
 
-  const handleRulesUpload = (snapshot: UploadResult) => {
-    const rule = { name: snapshot.ref.name, path: snapshot.ref.fullPath };
-    dispatch(addRule(rule));
-    methods.setValue('rules', [...storedRules, rule]);
-    console.log('getValues', methods.getValues());
-  };
-
   const handleFileDelete = (
     fileName: string,
     props: HandleFileDeletePropsType
   ) => {
-    const { inputName, storedFiles, reducer } = props;
-    const fileRef = fireBaseRef(storage, `${inputName}/${fileName}`);
-    deleteObject(fileRef);
+    const { inputName, storedFiles, reducer, idSubCollection } = props;
+
+    let filePath;
+    if (idSubCollection) {
+      filePath = `${inputName}/${idSubCollection}/${fileName}`;
+    } else {
+      filePath = `${inputName}/${fileName}`;
+    }
+
+    deleteFileFromStorageWithPath(filePath);
 
     dispatch(reducer(fileName));
     methods.setValue(
@@ -165,35 +200,14 @@ export const CreateEventForm = () => {
     );
   };
 
-  const handleDistanceDelete = (id: string) => {
-    dispatch(deleteNewDistance(id));
-    methods.setValue(
-      'newDistances',
-      storedDistances.filter((distance) => distance.id !== id)
-    );
-  };
-
-  const handleDistanceEdit = (id: string) => {
-    router.push(`createEvent/edit/distance/${id}`);
-  };
-
-  const handleImagesUpload = (snapshot: UploadResult) => {
-    const image = {
-      name: snapshot.ref.name,
-      path: snapshot.ref.fullPath,
-    };
-    dispatch(addImages(image));
-    methods.setValue('images', [...storedImages, image]);
-  };
-
   const handleGetInputValues = () => {
-    const values = {} as { [key in EventFormInputs]: any };
-    for (let input in EventFormInputs) {
-      values[input as keyof typeof EventFormInputs] = methods.getValues(
-        input as keyof InputValues
+    const values = {} as { [key in keyof typeof eventFormInputsNames]: any };
+    for (let input in eventFormInputsNames) {
+      values[input as keyof typeof eventFormInputsNames] = methods.getValues(
+        input as keyof EventFormValues
       );
     }
-    dispatch(storeInputValues(values));
+    dispatch(storeEventFormValues(values));
   };
 
   const checkStoredValues = (
@@ -206,80 +220,94 @@ export const CreateEventForm = () => {
     return false;
   };
 
+  //   if (errors) {
+  //   console.log('errors', errors)
+  // }
 
   return (
-    <div className=" flex flex-col items-center h-[100%] w-[100%] ">
-      <div className="flex flex-col items-center  w-[90%] lg:w-[55%] md:w-[85%] h-[100%] shadow-md rounded-md">
-        <FormProvider {...methods}>
-          <form
-            onSubmit={methods.handleSubmit(onSubmit)}
-            action=""
-            className="form flex flex-col w-[75%] gap-3 "
-          >
-            <div className="flex h-24 items-center justify-center font-medium text-lg ">
-              Event Constructor
+    <div className="flex flex-col m-auto items-center w-[100%] h-full shadow-md rounded-md  pb-10">
+      <FormProvider {...methods}>
+        <form
+          onSubmit={methods.handleSubmit(onSubmit)}
+          action=""
+          className="form flex flex-col w-[75%] gap-3 "
+        >
+          <input type="text" hidden {...methods.register('id')} />
+          <div className="flex h-20 items-center justify-center  ">
+            Event Constructor
+          </div>
+
+          <FormTextField
+            name="eventName"
+            label="Event name"
+            placeholder="Event name"
+            control={methods.control}
+            style={inputStyle}
+          />
+
+          <TextArea
+            name="information"
+            control={methods.control}
+            label="General information"
+            placeholder="General information"
+            style={textAreaStyle}
+          />
+
+          <div className="add dist flex flex-col justify-center max-w-[100%] rounded-md border border-slate-900 ">
+            <div className="flex w-full justify-center">
+              <h1 className=" m-auto">Distances</h1>
             </div>
 
-            <FormTextField
-              name="eventName"
-              label="Event name"
-              placeholder="Event name"
-              control={methods.control}
-              style={inputStyle}
-            />
+            <div className="flex flex-col justify-center max-w-[100%] rounded-md border border-slate-900 ">
+              <FormMultiSelect
+                name={`distancesFromDatabase`}
+                control={methods.control}
+                dataForSelectOptions={DISTANCES_SELECT_OPTIONS}
+                storedUnselectedOptions={storedDistancesUnselectedOptions}
+                reducer={distancesSelectOptions}
+                hasStoredValues={checkStoredValues(
+                  'distancesFromDatabase',
+                  storedEventFormValues
+                )}
+                label={'Choose distances from database'}
+              />
 
-            <TextArea
-              name="information"
-              control={methods.control}
-              label="General information"
-              placeholder="General information"
-              style={textAreaStyle}
-            />
+              {/* <div className="flex flex-col basis-1/4 w-full items-center ">
+                <Link
+                  href="/admin/createDistance"
+                  className="flex p-2 w-full h-12 justify-center rounded-md border-[1px] border-[#FBBD23] cursor-pointer transition ease-in hover:transition-all 1s hover:bg-[#FBBD23] "
+                >
+                  <button>Add new distance</button>
+                </Link>
+              </div> */}
 
-            <div className="add dist flex flex-col justify-center max-w-[100%] rounded-md border border-slate-900 ">
-              <div className="flex w-full justify-center">
-                <h1 className=" m-auto">Distances</h1>
-              </div>
-
-              <div className="flex flex-col items-center justify-center ">
-                <FormMultiSelect
-                  name={`distancesFromDatabase`}
-                  control={methods.control}
-                  dataForSelectOptions={DISTANCES_SELECT_OPTIONS}
-                  storedUnselectedOptions={storedDistancesUnselectedOptions}
-                  reducer={distancesSelectOptions}
-                  hasStoredValues={checkStoredValues(
-                    'distancesFromDatabase',
-                    storedInputValues
-                  )}
-                  label={'Choose distances from database or add new'}
-                />
-
-                <div className="flex flex-col basis-1/4 w-full items-center ">
-                  <Link
-                    href="/admin/createEvent/addNewDistance"
-                    className="flex p-2 w-full h-12 justify-center rounded-md border-[1px] border-[#FBBD23] cursor-pointer transition ease-in hover:transition-all 1s hover:bg-[#FBBD23] "
-                  >
-                    <button>Add new distance</button>
-                  </Link>
-                </div>
-
-                <PreviewDistancesList
-                  distances={storedDistances}
-                  onDelete={handleDistanceDelete}
-                  onEdit={handleDistanceEdit}
-                />
-              </div>
+              {/* <PreviewEntitiesList
+                entities={storedDistances.map((distance) => ({
+                  id: distance.id,
+                  entityName: distance.distanceName,
+                }))}
+                onDelete={() =>
+                  handleEntityDelete({
+                    fieldName: 'distancesFromDatabase',
+                    setFieldValues: methods.setValue,
+                  })
+                }
+                onEdit={() =>
+                  handleEntityEdit('admin/createDistance/edit/distance')
+                }
+              /> */}
             </div>
+          </div>
 
+          <div className=" flex flex-col justify-center max-w-[100%] rounded-md border border-slate-900 ">
             <EventFormUploadFiles
               inputName={'rules'}
               label="Rules and regulations"
               collectionName="rules"
               formState={methods.formState}
-              onUpload={handleRulesUpload}
               acceptTypes={ACCEPTED_RULES_MIME_TYPES}
               errors={errors}
+              reducer={addRule}
             />
 
             {storedRules.length > 0 && (
@@ -293,15 +321,18 @@ export const CreateEventForm = () => {
                 }}
               />
             )}
+          </div>
 
+          <div className=" flex flex-col justify-center max-w-[100%] rounded-md border border-slate-900 ">
             <EventFormUploadFiles
               inputName={'images'}
               label="Images"
               collectionName="images"
+              subCollection={methods.getValues('id')}
               formState={methods.formState}
-              onUpload={handleImagesUpload}
               acceptTypes={ACCEPTED_IMAGE_MIME_TYPES}
               errors={errors}
+              reducer={addImages}
             />
 
             {storedImages.length > 0 && (
@@ -312,31 +343,32 @@ export const CreateEventForm = () => {
                   inputName: 'images',
                   storedFiles: storedImages,
                   reducer: deleteImage,
+                  idSubCollection: methods.getValues('id'),
                 }}
               />
             )}
+          </div>
 
-            <div className="add dist flex flex-col justify-center max-w-[100%] rounded-md border border-slate-900 ">
-              <FormMultiSelect
-                name={`partnersFromDatabase`}
-                control={methods.control}
-                dataForSelectOptions={PARTNERS_FROM_DATABASE}
-                storedUnselectedOptions={storedPartnersUnselectedOptions}
-                reducer={partnersSelectOptions}
-                hasStoredValues={checkStoredValues(
-                  'partnersFromDatabase',
-                  storedInputValues
-                )}
-                label={'Choose partners from database or add new'}
-              />
+          <div className="add dist flex flex-col justify-center max-w-[100%] rounded-md border border-slate-900 ">
+            <FormMultiSelect
+              name={`partnersFromDatabase`}
+              control={methods.control}
+              dataForSelectOptions={PARTNERS_FROM_DATABASE}
+              storedUnselectedOptions={storedPartnersUnselectedOptions}
+              reducer={partnersSelectOptions}
+              hasStoredValues={checkStoredValues(
+                'partnersFromDatabase',
+                storedEventFormValues
+              )}
+              label={'Choose partners from database or add new'}
+            />
 
-              <AddPartners />
-            </div>
+            <AddPartners />
+          </div>
 
-            <input className="bg-yellow-300" type="submit" />
-          </form>
-        </FormProvider>
-      </div>
+          <input className="bg-yellow-300" type="submit" />
+        </form>
+      </FormProvider>
     </div>
   );
-};
+}

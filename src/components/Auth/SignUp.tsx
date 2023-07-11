@@ -1,12 +1,13 @@
-// import "Auth.module.css"
-import { useRouter } from 'next/router';
+'use client'
+
+import { useRouter } from 'next/navigation';
 import { FirebaseError } from 'firebase/app';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 import { FirebaseErrorCodes } from './auth.types';
-import { useAuth } from '@/containers/AuthUserContainer';
+// import { useAuth } from '@/containers/AuthUserContainer';
 
 type Inputs = {
   email: string;
@@ -28,11 +29,11 @@ export const SignUp = () => {
 
   const router = useRouter();
 
-  const { createUserEmailAndPassword } = useAuth();
+  // const { createUserEmailAndPassword } = useAuth();
 
   const onSubmit = handleSubmit(async ({ email, password }) => {
     try {
-      await createUserEmailAndPassword(email, password);
+      // await createUserEmailAndPassword(email, password);
       router.push('/');
     } catch (error) {
       const { code } = error as FirebaseError;

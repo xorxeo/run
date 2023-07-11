@@ -1,14 +1,14 @@
 import { DetailedHTMLProps, SelectHTMLAttributes, forwardRef } from 'react';
 
 export type SelectProps = {
-  options: selectOptions[];
+  options: SelectOptions[];
   label?: string;
 } & DetailedHTMLProps<
   SelectHTMLAttributes<HTMLSelectElement>,
   HTMLSelectElement
 >;
 
-export type selectOptions = {
+export type SelectOptions = {
   title: string;
   value: any;
 };

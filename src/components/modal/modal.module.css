@@ -1,0 +1,35 @@
+.my-modal {
+  position: fixed;
+  inset: 0; /* inset sets all 4 values (top right bottom left) much like how we set padding, margin etc., */
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease-in-out;
+  overflow: hidden;
+  z-index: 1;
+  padding: 40px 20px 20px;
+}
+
+.my-modal-content {
+  width: 70%;
+  height: 70%;
+  background-color: #46494f;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+}
+
+.buttons-container{
+  width: 70%;
+  display: flex;
+  justify-content: space-between;
+}
+
+.modal-button {
+  position: relative;
+  background-color: #fff;
+}

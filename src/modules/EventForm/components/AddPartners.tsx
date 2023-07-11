@@ -1,4 +1,5 @@
-import { useDispatch, useSelector } from 'react-redux';
+// 'use client'
+
 import { UploadResult } from 'firebase/storage';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 
@@ -6,8 +7,12 @@ import { FormTextField } from './../../../components/text-field/FormTextField';
 import { EventFormValues, PartnerFormValues } from '../event-form.schema';
 import { EventFormUploadFiles } from './EventFormUploadFiles';
 import { nanoid } from 'nanoid';
-import { addLogo, deleteLogo, selectLogos } from '../store/eventFormSlice';
+import { addLogo, deleteLogo, selectLogos } from '../../../app/redux/features/eventFormSlice';
 import { inputStyle } from '@/styles/eventFormStyles';
+import {useAppDispatch, useAppSelector } from '../../../app/redux/hooks'
+import { useEffect } from 'react';
+import Image from 'next/image';
+import DeleteIcon from '../../../../public/icons/delete-icon.svg';
 
 
 export type PartnersType = Pick<EventFormValues, 'newPartners'>;
@@ -16,26 +21,42 @@ export const AddPartners = () => {
   const { control, formState, setValue, register } =
     useFormContext<PartnersType>();
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, remove, } = useFieldArray({
     name: 'newPartners',
     control,
   });
 
-  const dispatch = useDispatch();
-  const storedLogos = useSelector(selectLogos);
+  const dispatch = useAppDispatch();
+  const storedLogos = useAppSelector(selectLogos);
 
-  const handleLogoUpload = (index: number) => {
-    return (snapshot: UploadResult) => {
-      const logoName = snapshot.ref.name;
-      dispatch(addLogo({ index, logoName }));
-      setValue(`newPartners.${index}.logoName`, logoName);
-    };
-  };
+  // useEffect(() => {
+  //   for (let field of fields) {
+  //     setValue(`newPartners.${index}.logoPath`, storedLogos[index].path);
+  //   }
+  // }, [storedLogos]);
+
+ useEffect(() => {
+   fields.forEach((field, index) => { 
+     if (!storedLogos[index]) {
+       setValue(`newPartners.${index}.logoPath`, '');
+     } else {
+       setValue(`newPartners.${index}.logoPath`, storedLogos[index].path);
+     }
+    })
+ }, [storedLogos]);
+
+  // const handleLogoUpload = (index: number) => {
+  //   return (snapshot: UploadResult) => {
+  //     const logoName = snapshot.ref.name;
+  //     dispatch(addLogo({ index, logoName }));
+  //     setValue(`newPartners.${index}.logoName`, logoName);
+  //   };
+  // };
 
   const handleLogoDelete = (index: number) => {
     return () => {
       dispatch(deleteLogo(index));
-      setValue(`newPartners.${index}.logoName`, '');
+      setValue(`newPartners.${index}.logoPath`, '');
     };
   };
 
@@ -49,7 +70,7 @@ export const AddPartners = () => {
       id: nanoid(),
       name: '',
       link: '',
-      logoName: '',
+      logoPath: '',
     });
   };
 
@@ -80,27 +101,34 @@ export const AddPartners = () => {
             <EventFormUploadFiles
               collectionName={`partners`}
               formState={formState}
-              inputName={`newPartners.${index}.logoName` as const}
+              inputName={`newPartners.${index}.logoPath` as const}
               label="Upload logo"
-              onUpload={handleLogoUpload(index)}
+              index={index}
+              reducer={addLogo}
             />
 
             {storedLogos[index] && (
-              <div key={nanoid()}>
-                <span className="mr-1">
+              <div
+                className="flex flex-row w-full min-h-12 justify-between items-center pl-2 pr-2 "
+                key={nanoid()}
+              >
+                <div className="mr-1">
                   {storedLogos
                     .filter((logo) => logo.index === index)
-                    .map((el) => el.logoName)}
-                </span>
-                <button type="button" onClick={handleLogoDelete(index)}>
-                  <svg
-                    className="flex border-[1px] opacity-40 hover:opacity-70 hover:bg-[#FBBD23]"
-                    height="20"
-                    width="20"
-                    viewBox="0 0 20 20"
-                  >
-                    <path d="M14.348 14.849c-0.469 0.469-1.229 0.469-1.697 0l-2.651-3.030-2.651 3.029c-0.469 0.469-1.229 0.469-1.697 0-0.469-0.469-0.469-1.229 0-1.697l2.758-3.15-2.759-3.152c-0.469-0.469-0.469-1.228 0-1.697s1.228-0.469 1.697 0l2.652 3.031 2.651-3.031c0.469-0.469 1.228-0.469 1.697 0s0.469 1.229 0 1.697l-2.758 3.152 2.758 3.15c0.469 0.469 0.469 1.229 0 1.698z"></path>
-                  </svg>
+                    .map((el) => el.name)}
+                </div>
+                <button
+                  className="flex w-[10%] min-h-[2.5rem] items-center justify-center border-[1px] hover:bg-[#FBBD23] rounded-md"
+                  type="button"
+                  onClick={handleLogoDelete(index)}
+                >
+                  <Image
+                    className="  "
+                    src={DeleteIcon}
+                    alt="delete icon"
+                    height={20}
+                    width={20}
+                  ></Image>
                 </button>
               </div>
             )}
