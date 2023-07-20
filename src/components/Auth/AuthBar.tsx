@@ -13,8 +13,10 @@ export const AuthBar = () => {
   const user = useAuthContext();
 
   useEffect(() => {
+   
     if (user && user.email == process.env.NEXT_PUBLIC_FIREBASE_ADMIN_EMAIL) {
       setIsAdmin(true);
+      // console.log('auth', auth)
     }
   }, [user]);
 
@@ -29,19 +31,21 @@ export const AuthBar = () => {
   };
 
   return (
-    <div className="flex justify-between gap-10 items-center font-semibold">
+    <div className="flex justify-between gap-10 items-center font-semibold select-none">
       {isAdmin && <Link href="/admin">admin page</Link>}
 
-      <button onClick={handleCheckUser}>check user</button>
+      <button onClick={handleCheckUser} className="select-none">
+        check user
+      </button>
 
       {user && (
-        <Link href="/" onClick={handlerSignOut}>
+        <Link href="/" onClick={handlerSignOut} className="select-none">
           sign out
         </Link>
       )}
 
       {user === null && (
-        <Link href="/signIn" className="">
+        <Link href="/signIn" className="select-none">
           sign in
         </Link>
       )}

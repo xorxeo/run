@@ -31,39 +31,45 @@ import { WEB_LINK_INPUT_MASK } from './create-event-form/create-event-form.const
 import { inputStyle } from '@/styles/eventFormStyles';
 import { distanceFormInputsNames } from '../event-form.typings';
 import { UseFormManager } from '@/services/hooks/useFormManager';
-import { Modal } from '@/components/modal/Modal';
+import { OverlayingPopup } from '@/components/overlayingPopup/OverlayingPopup';
 import { NavigationEvents } from '@/services/NavigationEvents';
+import { MainPopup } from '@/components/mainPopup/MainPopup';
+import { Dialog } from '@/components/dialog/Dialog';
+import { DIALOGCASES } from '@/components/dialog/dialogCases';
+
+// import {experimental_useFormStatus} from 'react-dom'
 
 export const CreateDistance = ({ params }: { params: { id: string } }) => {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isDirty, isValid },
-    setError,
-    setValue,
-    control,
-    reset,
-    getValues,
-  } = useForm<DistanceFormValues>({
-    resolver: zodResolver(distancesSchema),
-    mode: 'onChange',
-    reValidateMode: 'onBlur',
-    defaultValues: DISTANCE_DEFAULT_VALUES,
-  });
   const [distanceId, setDistanceId] = useState(params.id);
-
+  
   const router = useRouter();
-
+  
   const storedDraftNewDistanceFormValues = useAppSelector(
     selectDraftNewDistanceFormValues
-  );
-
-  const storedDistances = useAppSelector(selectDistancesFromDatabase);
-
-  const editedDistance = storedDistances.find((distance) => {
-    return distance.id === distanceId;
-  });
-
+    );
+    
+    const storedDistances = useAppSelector(selectDistancesFromDatabase);
+    
+    const editedDistance = storedDistances.find(distance => {
+      return distance.id === distanceId;
+    });
+    
+    const {
+      register,
+      handleSubmit,
+      formState: { errors, isDirty, isValid, touchedFields },
+      setError,
+      setValue,
+      control,
+      reset,
+      getValues,
+    } = useForm<DistanceFormValues>({
+      resolver: zodResolver(distancesSchema),
+      mode: 'onChange',
+      reValidateMode: 'onBlur',
+      defaultValues: distanceId ? editedDistance : DISTANCE_DEFAULT_VALUES,
+    });
+  
   const {
     handleGetFormValues,
     handleSetFormValues,
@@ -80,40 +86,41 @@ export const CreateDistance = ({ params }: { params: { id: string } }) => {
 
   useEffect(() => {
     if (!distanceId) {
-      handleSetFormValues({
-        resetFormValues: reset,
-        storedValues: storedDraftNewDistanceFormValues,
-      });
-    } else if (distanceId) {
-      handleSetFormValues({
-        resetFormValues: reset,
-        storedValues: editedDistance,
-      });
-    }
+    //   handleSetFormValues({
+    //     resetFormValues: reset,
+    //     storedValues: storedDraftNewDistanceFormValues,
+    //   });
+      setValue('id', nanoid());
+    } 
+    // else if (distanceId) {
+    //   console.log('editedDistance', editedDistance);
+    //   handleSetFormValues({
+    //     resetFormValues: reset,
+    //     storedValues: editedDistance,
+    //   });
+    // }
   }, []);
 
   useEffect(() => {
-    if (!distanceId) {
-      setValue('id', nanoid());
-    }
-    return () => {
-      if (!distanceId) {
-        handleGetFormValues({
-          getInputsValuesMethod: getValues,
-          reducerStoreInputsValues: storeDraftNewDistanceFormValues,
-          inputsNames: distanceFormInputsNames,
-        });
-      } else if (distanceId) {
-        handleGetFormValues({
-          getInputsValuesMethod: getValues,
-          reducerStoreInputsValues: storeEditedDistance,
-          inputsNames: distanceFormInputsNames,
-        });
-      }
-    };
+    // return () => {
+    //   if (!distanceId) {
+    //     handleGetFormValues({
+    //       getInputsValuesMethod: getValues,
+    //       reducerStoreInputsValues: storeDraftNewDistanceFormValues,
+    //       inputsNames: distanceFormInputsNames,
+    //     });
+    //   } else if (distanceId) {
+    //     console.log('GET');
+    //     handleGetFormValues({
+    //       getInputsValuesMethod: getValues,
+    //       reducerStoreInputsValues: storeEditedDistance,
+    //       inputsNames: distanceFormInputsNames,
+    //     });
+    //   }
+    // };
   }, []);
 
-  const onSubmit: SubmitHandler<DistanceFormValues> = (formData) => {
+  const onSubmitNew: SubmitHandler<DistanceFormValues> = formData => {
     handleSubmitNewForm({
       onSubmitData: formData,
       collectionName: 'distances',
@@ -125,7 +132,7 @@ export const CreateDistance = ({ params }: { params: { id: string } }) => {
     setIsModalOpen(false);
   };
 
-  const onSubmitEdited: SubmitHandler<DistanceFormValues> = (formData) => {
+  const onSubmitEdited: SubmitHandler<DistanceFormValues> = formData => {
     handleSubmitEditedForm({
       collectionName: 'distances',
       setError,
@@ -148,66 +155,90 @@ export const CreateDistance = ({ params }: { params: { id: string } }) => {
         />
       </Suspense> */}
 
-      <Modal
-        modalElements={{
-          buttons: distanceId
-            ? [
-                {
-                  title: 'No, thanks',
-                  onClick: () => {
-                    setIsModalOpen(false);
-                    router.back();
-                  },
-                },
-                {
-                  title: 'Save',
-                  onClick: handleSubmit(onSubmitEdited),
-                },
-              ]
-            : [
-                {
-                  title: 'Cancel',
-                  onClick: () => setIsModalOpen(false),
-                },
-                {
-                  title: 'Submit',
-                  onClick: handleSubmit(onSubmit),
-                },
-              ],
-        }}
-        handleClose={() => setIsModalOpen(false)}
-        isOpen={isModalOpen}
+      <MainPopup
+        isOpened={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        customStyle=" min-w-[600px] min-h-[400px]"
+        // title='Blah-blah'
       >
-        {distanceId ? 'Save changes?' : 'Submit form?'}
-      </Modal>
+        {/* {distanceId ? (
+          <Dialog
+            content="Unsaved changes. Are you sure you want to leave this page?"
+            buttons={[
+              { buttonText: 'Cancel', buttonOnClick: () => setIsModalOpen(!isModalOpen) },
+              {
+                buttonText: 'Continue',
+                buttonOnClick: () => router.back(),
+              },
+            ]}
+          />
+        ) : (
+          <Dialog
+            content="Submit form?"
+            buttons={[
+              {
+                buttonText: 'No',
+                buttonOnClick: () => {
+                  setIsModalOpen(!isModalOpen);
+                  router.back();
+                },
+              },
+              {
+                buttonText: 'Submit',
+                buttonOnClick: handleSubmit(onSubmitNew),
+              },
+            ]}
+          />
+        )} */}
+        {/* {Object.keys(DIALOGCASES).map(key => {
+          const dialogCase = DIALOGCASES[key as keyof typeof DIALOGCASES];
+          for (let actionKey in dialogCase) {
+            const action = dialogCase[actionKey as keyof typeof dialogCase];
+            if ('content' in action) {
+              return (
+                <Dialog
+                  key={key}
+                  content={action.content}
+                  buttons={action.buttons}
+                />
+              );
+            }
+          }
+          return null;
+        })} */}
+      </MainPopup>
 
       <div className="flex justify-between">
         <button
           type="button"
           onClick={() => {
-            if (!isDirty) {
-              router.back();
-            }
+            console.log('isDirty', isDirty);
             if (isValid && isDirty) {
               console.log('isDirty', isDirty);
               setIsModalOpen(!isModalOpen);
+            } else {
+              router.back();
             }
           }}
+          className={' button-active hover:bg-yellow-400'}
         >
           Cancel
         </button>
         {!distanceId && (
           // <button onClick={handleSubmit(onSubmit)}>Submit</button>
-          <input
+          <button
             type="submit"
-            value="Submit"
             onClick={() => {
               if (isValid) {
                 setIsModalOpen(!isModalOpen);
               }
             }}
-            className={isValid ? 'button-active' : 'button-disabled'}
-          />
+            className={
+              isValid ? 'button-active bg-yellow-400 ' : 'button-disabled'
+            }
+          >
+            Submit
+          </button>
         )}
         {distanceId && (
           // <button onClick={handleSubmit(onSubmitEdited)}>Save changes</button>
@@ -217,6 +248,7 @@ export const CreateDistance = ({ params }: { params: { id: string } }) => {
                 setIsModalOpen(!isModalOpen);
               }
             }}
+            className={'button-active hover:bg-yellow-400'}
           >
             Save changes
           </button>
@@ -226,7 +258,7 @@ export const CreateDistance = ({ params }: { params: { id: string } }) => {
       {distanceId ? <h1>Edit distance</h1> : <h1>Create distance</h1>}
 
       <form
-        onSubmit={handleSubmit(onSubmit)}
+        onSubmit={handleSubmit(onSubmitNew)}
         className="flex flex-col w-[80%] lg:w-[55%] gap-3"
       >
         <input type="hidden" {...register('id')} />

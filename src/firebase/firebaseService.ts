@@ -48,7 +48,7 @@ class FirebaseService {
   storage: FirebaseStorage;
   app: FirebaseApp;
   auth: Auth;
-  error = {} as FirebaseError | StorageError;
+  error: any;
 
   constructor() {
     this.app =
@@ -57,6 +57,7 @@ class FirebaseService {
     this.firestore = getFirestore(this.app);
     this.storage = getStorage();
     this.auth = getAuth();
+    this.error = '';
     // this.collectionRef = collection(this.firestore, collectionName);
   }
 
@@ -67,8 +68,8 @@ class FirebaseService {
       await setDoc(documentRef, data);
       console.log('Document written with ID: ', documentRef.id);
     } catch (error) {
-      this.error = error as FirebaseError;
-      return this.error.message;
+      const { message } = error as FirebaseError;
+      return (this.error = message);
     }
   }
 
@@ -79,19 +80,21 @@ class FirebaseService {
       const documentRef = doc(collectionRef, data.id);
       await updateDoc(documentRef, data);
     } catch (error) {
-      this.error = error as FirebaseError;
-      return this.error.message;
+      const { message } = error as FirebaseError;
+      return (this.error = message);
     }
   }
 
   async deleteDocumentByID(collectionName: string, id: string) {
+    console.log('in delete', id);
     try {
       const collectionRef = collection(this.firestore, collectionName);
       const documentRef = doc(collectionRef, id);
       await deleteDoc(documentRef);
+      console.log('delete documentRef', documentRef);
     } catch (error) {
-      this.error = error as FirebaseError;
-      return this.error.message;
+      const { message } = error as FirebaseError;
+      return (this.error = message);
     }
   }
 
@@ -100,14 +103,16 @@ class FirebaseService {
       const collectionRef = collection(this.firestore, collectionName);
       const querySnapshot = await getDocs(collectionRef);
       if (querySnapshot.empty) {
-        return (this.error.message = `Collection ${collectionName} does not exist or is empty`);
-      } else {
-        const documents = querySnapshot.docs.map((doc) => doc.data());
-        return documents;
+       throw new Error(
+         (this.error = `Collection ${collectionName} does not exist or is empty`)
+       );
       }
+      const documents = querySnapshot.docs.map(doc => doc.data());
+      return documents;
     } catch (error) {
-      this.error = error as FirebaseError;
-      return this.error.message;
+      const { message } = error as FirebaseError;
+      return (this.error = message);
+      // throw new Error(message);
     }
   }
 
@@ -117,8 +122,8 @@ class FirebaseService {
       const downloadURL = await getDownloadURL(fileRef);
       return downloadURL;
     } catch (error) {
-      this.error = error as StorageError;
-      return this.error.message;
+      const { message } = error as FirebaseError;
+      return (this.error = message);
     }
   }
 }

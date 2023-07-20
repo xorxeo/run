@@ -63,7 +63,7 @@ export const Sidebar = () => {
       {Object.entries(items).map(([key, values]) => (
         <div
           key={key}
-          className="side-bar-chapter flex flex-col items-center mt-4 w-full"
+          className="side-bar-chapter flex flex-col items-center w-full"
         >
           <h2 className="">{key}</h2>
 

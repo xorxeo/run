@@ -26,12 +26,15 @@ import { useCallback } from 'react';
 export const isDistances = (items: unknown): items is DistanceFormValues[] => {
   return (items as DistanceFormValues[]).every((item) => !!item.distanceName);
 };
+
 export const isEvents = (items: unknown): items is EventFormValues[] => {
   return (items as EventFormValues[]).every((item) => !!item.eventName);
 };
+
 export const isError = (items: unknown) => {
   if (typeof items === 'string') return true;
 };
+
 type ActionTypes = ReturnType<
   (typeof eventFormSlice.actions)[keyof typeof eventFormSlice.actions]
 >;

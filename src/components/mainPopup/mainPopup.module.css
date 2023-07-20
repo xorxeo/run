@@ -1,0 +1,10 @@
+.main-popup-container {
+ border: 1px solid #e6e6e6;
+  box-sizing: border-box;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+  overflow: auto;
+  background-color: #f8f8f8;
+  z-index: 3;
+ 
+}

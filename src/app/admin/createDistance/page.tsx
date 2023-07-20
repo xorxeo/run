@@ -18,8 +18,8 @@ export default function addNewDistance({
   // const CreateNewDistance = FormManager(CreateDistance)
   // return <CreateNewDistance params={params}/>;
   return (
-  
+    
       <CreateDistance params={params} />
-   
+    
   );
 }

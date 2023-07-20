@@ -2,6 +2,7 @@
 
 import { fetchCollection } from '@/app/actions';
 import { EventsList } from '@/components/eventsList';
+import { LoadingSkeleton } from '@/components/loading-skeleton/LoadingSkeleton';
 import firebaseApp from '@/firebase/initFirebase';
 import { PreviewEntitiesList } from '@/modules/EventForm/components/PreviewEntitiesList';
 import { DistanceFormValues } from '@/modules/EventForm/event-form.schema';
@@ -29,6 +30,7 @@ export default function EditEvent() {
   return (
     <div>
       Edit Event
+    <LoadingSkeleton/>
       {/* <EventsList /> */}
       {/* <PreviewEntitiesList entities={entities} /> */}
     </div>

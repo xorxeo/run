@@ -1,8 +1,12 @@
-@import '../components/modal/modal.module.css';
+@import '../components/overlayingPopup/overlayingPopup.module.css';
+@import '../components/mainPopup/mainPopup.module.css';
+@import '../components/dialog/dialog.module.css';
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
 
 /* @import "../components/Auth/SignUp.module.css"; */
 
@@ -11,5 +15,3 @@
         @apply flex h-12 w-[100%] mt-1 mb-1 items-center justify-center cursor-pointer border rounded-lg
     }
 } */
-
-
