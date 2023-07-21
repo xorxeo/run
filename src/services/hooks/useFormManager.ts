@@ -83,7 +83,7 @@ type HandleEntityDelete = {
   (props: HandleEntityDeleteProps): (id: string) => void;
 };
 
-export const UseFormManager = () => {
+export const useFormManager = () => {
   const dispatch = useAppDispatch();
   const storedDistances = useAppSelector(selectDistancesFromDatabase);
   const storedEvents = useAppSelector(selectEventsFromDatabase);

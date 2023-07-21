@@ -30,7 +30,7 @@ import {
 import { WEB_LINK_INPUT_MASK } from './create-event-form/create-event-form.consts';
 import { inputStyle } from '@/styles/eventFormStyles';
 import { distanceFormInputsNames } from '../event-form.typings';
-import { UseFormManager } from '@/services/hooks/useFormManager';
+import { useFormManager } from '@/services/hooks/useFormManager';
 import { OverlayingPopup } from '@/components/overlayingPopup/OverlayingPopup';
 import { NavigationEvents } from '@/services/NavigationEvents';
 import { MainPopup } from '@/components/mainPopup/MainPopup';
@@ -41,19 +41,19 @@ import { DIALOGCASES } from '@/components/dialog/dialogCases';
 
 export const CreateDistance = ({ params }: { params: { id: string } }) => {
   const [distanceId, setDistanceId] = useState(params.id);
-  
+
   const router = useRouter();
-  
+
   const storedDraftNewDistanceFormValues = useAppSelector(
     selectDraftNewDistanceFormValues
     );
-    
+
     const storedDistances = useAppSelector(selectDistancesFromDatabase);
-    
+
     const editedDistance = storedDistances.find(distance => {
       return distance.id === distanceId;
     });
-    
+
     const {
       register,
       handleSubmit,
@@ -69,15 +69,16 @@ export const CreateDistance = ({ params }: { params: { id: string } }) => {
       reValidateMode: 'onBlur',
       defaultValues: distanceId ? editedDistance : DISTANCE_DEFAULT_VALUES,
     });
-  
+
   const {
     handleGetFormValues,
     handleSetFormValues,
     handleSubmitNewForm,
     handleSubmitEditedForm,
-  } = UseFormManager();
+  } = useFormManager();
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLeavePageModalOpen, setIsLeavePageModalOpen] = useState(false);
+  const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
 
   useEffect(() => {
     //  console.log('CreateDistance distanceId', params.id);
@@ -91,7 +92,7 @@ export const CreateDistance = ({ params }: { params: { id: string } }) => {
     //     storedValues: storedDraftNewDistanceFormValues,
     //   });
       setValue('id', nanoid());
-    } 
+    }
     // else if (distanceId) {
     //   console.log('editedDistance', editedDistance);
     //   handleSetFormValues({
@@ -129,7 +130,7 @@ export const CreateDistance = ({ params }: { params: { id: string } }) => {
       resetFormValues: reset(DISTANCE_DEFAULT_VALUES),
       setError,
     });
-    setIsModalOpen(false);
+    setIsLeavePageModalOpen(false);
   };
 
   const onSubmitEdited: SubmitHandler<DistanceFormValues> = formData => {
@@ -138,12 +139,16 @@ export const CreateDistance = ({ params }: { params: { id: string } }) => {
       setError,
       updatedData: formData,
     });
-    setIsModalOpen(false);
+    setIsLeavePageModalOpen(false);
     router.back();
   };
   // if (errors) {
   //   console.log('errors', errors)
   // }
+
+  const handleOnLeavePageDialogClose = () => {
+    setIsLeavePageModalOpen(false);
+  }
 
   return (
     <div className="flex flex-col m-auto  shadow-md rounded-md ">
@@ -156,8 +161,8 @@ export const CreateDistance = ({ params }: { params: { id: string } }) => {
       </Suspense> */}
 
       <MainPopup
-        isOpened={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        isOpened={isLeavePageModalOpen}
+        onClose={() => setIsLeavePageModalOpen(false)}
         customStyle=" min-w-[600px] min-h-[400px]"
         // title='Blah-blah'
       >
@@ -208,6 +213,23 @@ export const CreateDistance = ({ params }: { params: { id: string } }) => {
         })} */}
       </MainPopup>
 
+      <Dialog isOpen={isLeavePageModalOpen}
+              title="Unsaved changes"
+              message="Are you sure you want to leave this page?"
+              cancelButtonTitle="cancel"
+              submitButtonTitle="submit"
+              onCancel={handleOnLeavePageDialogClose}
+              onSubmit={() => {}} />
+
+      <Dialog isOpen={isSubmitModalOpen}
+              title="Submit form"
+              message="Are you sure you want to submit this form?"
+              cancelButtonTitle="cancel"
+              submitButtonTitle="submit"
+              onCancel={() => setIsSubmitModalOpen(false)}
+              onSubmit={() => {}} />
+
+
       <div className="flex justify-between">
         <button
           type="button"
@@ -215,7 +237,7 @@ export const CreateDistance = ({ params }: { params: { id: string } }) => {
             console.log('isDirty', isDirty);
             if (isValid && isDirty) {
               console.log('isDirty', isDirty);
-              setIsModalOpen(!isModalOpen);
+              setIsLeavePageModalOpen(!isLeavePageModalOpen);
             } else {
               router.back();
             }
@@ -230,7 +252,7 @@ export const CreateDistance = ({ params }: { params: { id: string } }) => {
             type="submit"
             onClick={() => {
               if (isValid) {
-                setIsModalOpen(!isModalOpen);
+                setIsLeavePageModalOpen(!isLeavePageModalOpen);
               }
             }}
             className={
@@ -245,7 +267,7 @@ export const CreateDistance = ({ params }: { params: { id: string } }) => {
           <button
             onClick={() => {
               if (isValid) {
-                setIsModalOpen(!isModalOpen);
+                setIsLeavePageModalOpen(!isLeavePageModalOpen);
               }
             }}
             className={'button-active hover:bg-yellow-400'}

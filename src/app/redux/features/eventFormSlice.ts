@@ -38,6 +38,7 @@ export type InitialState = {
   distances: {
     // newDistances: DistanceFormValues[];
     distancesFromDatabase: DistanceFormValues[];
+    isInitialFetched: boolean;
   };
   images: EventUploadFile[];
   partners: {
@@ -58,6 +59,7 @@ const initialState: InitialState = {
   distances: {
     // newDistances: [],
     distancesFromDatabase: [],
+    isInitialFetched: false,
   },
   rules: [],
   images: [],
@@ -123,6 +125,9 @@ export const eventFormSlice = createSlice({
       action: PayloadAction<DistanceFormValues[]>
     ) => {
       state.distances.distancesFromDatabase = [...action.payload];
+    },
+    setInitialFetched: (state, action: PayloadAction<boolean>) => {
+      state.distances.isInitialFetched = true
     },
     addNewDistance: (state, action: PayloadAction<DistanceFormValues>) => {
       state.distances.distancesFromDatabase.push(action.payload);
@@ -217,6 +222,7 @@ export const {
   resetEventFormAfterSubmit,
   deleteEvent,
   storeDistancesFromDatabase,
+  setInitialFetched,
   deleteStoredDistanceById,
 
   // storedSelectDistancesFromDatabaseOptions,
@@ -242,6 +248,9 @@ export const selectDistancesStoredSelectOptions = (state: RootState) =>
 
 export const selectDistancesFromDatabase = (state: RootState) =>
   state.eventFormSlice.distances.distancesFromDatabase;
+
+export const selectIsInitialFetched = (state: RootState) =>
+  state.eventFormSlice.distances.isInitialFetched;
 
 export const selectEventsFromDatabase = (state: RootState) =>
   state.eventFormSlice.storedEvents;

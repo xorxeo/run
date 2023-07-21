@@ -65,7 +65,7 @@ import {
 } from '@/firebase/getData';
 import { nanoid } from 'nanoid';
 import FirebaseService from '@/firebase/firebaseService';
-import { UseFormManager } from '@/services/hooks/useFormManager';
+import { useFormManager } from '@/services/hooks/useFormManager';
 import firebaseApp from '@/firebase/initFirebase';
 
 export type HandleFileDeletePropsType = {
@@ -101,7 +101,7 @@ export default function CreateEventForm({
     },
   });
 
-  const { handleEntityEdit, handleEntityDelete } = UseFormManager();
+  const { handleEntityEdit, handleEntityDelete } = useFormManager();
 
   const router = useRouter();
 
