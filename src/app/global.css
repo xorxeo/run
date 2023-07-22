@@ -1,3 +1,5 @@
+@config "../../tailwind.config.js";
+
 @import '../components/overlayingPopup/overlayingPopup.module.css';
 @import '../components/mainPopup/mainPopup.module.css';
 @import '../components/dialog/dialog.module.css';
@@ -6,7 +8,9 @@
 @tailwind components;
 @tailwind utilities;
 
-
+.select {
+  @apply min-h-[2rem] h-10 font-normal focus:outline-none
+}
 
 /* @import "../components/Auth/SignUp.module.css"; */
 

@@ -35,7 +35,6 @@ import { OverlayingPopup } from '@/components/overlayingPopup/OverlayingPopup';
 import { NavigationEvents } from '@/services/NavigationEvents';
 import { MainPopup } from '@/components/mainPopup/MainPopup';
 import { Dialog } from '@/components/dialog/Dialog';
-import { DIALOGCASES } from '@/components/dialog/dialogCases';
 
 // import {experimental_useFormStatus} from 'react-dom'
 
@@ -237,7 +236,7 @@ export const CreateDistance = ({ params }: { params: { id: string } }) => {
             console.log('isDirty', isDirty);
             if (isValid && isDirty) {
               console.log('isDirty', isDirty);
-              setIsLeavePageModalOpen(!isLeavePageModalOpen);
+              setIsSubmitModalOpen(!isSubmitModalOpen);
             } else {
               router.back();
             }
