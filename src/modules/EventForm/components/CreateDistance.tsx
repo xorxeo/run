@@ -35,6 +35,10 @@ import { OverlayingPopup } from '@/components/overlayingPopup/OverlayingPopup';
 import { NavigationEvents } from '@/services/NavigationEvents';
 import { MainPopup } from '@/components/mainPopup/MainPopup';
 import { Dialog } from '@/components/dialog/Dialog';
+import { Modal } from '@/components/modal/Modal';
+import { ConfirmationDialog } from '@/components/modal/ModalWindow';
+import { useDisclosure } from '@mantine/hooks';
+import { Button } from '@mantine/core';
 
 // import {experimental_useFormStatus} from 'react-dom'
 
@@ -45,29 +49,29 @@ export const CreateDistance = ({ params }: { params: { id: string } }) => {
 
   const storedDraftNewDistanceFormValues = useAppSelector(
     selectDraftNewDistanceFormValues
-    );
+  );
 
-    const storedDistances = useAppSelector(selectDistancesFromDatabase);
+  const storedDistances = useAppSelector(selectDistancesFromDatabase);
 
-    const editedDistance = storedDistances.find(distance => {
-      return distance.id === distanceId;
-    });
+  const editedDistance = storedDistances.find(distance => {
+    return distance.id === distanceId;
+  });
 
-    const {
-      register,
-      handleSubmit,
-      formState: { errors, isDirty, isValid, touchedFields },
-      setError,
-      setValue,
-      control,
-      reset,
-      getValues,
-    } = useForm<DistanceFormValues>({
-      resolver: zodResolver(distancesSchema),
-      mode: 'onChange',
-      reValidateMode: 'onBlur',
-      defaultValues: distanceId ? editedDistance : DISTANCE_DEFAULT_VALUES,
-    });
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isDirty, isValid, touchedFields },
+    setError,
+    setValue,
+    control,
+    reset,
+    getValues,
+  } = useForm<DistanceFormValues>({
+    resolver: zodResolver(distancesSchema),
+    mode: 'onChange',
+    reValidateMode: 'onBlur',
+    defaultValues: distanceId ? editedDistance : DISTANCE_DEFAULT_VALUES,
+  });
 
   const {
     handleGetFormValues,
@@ -79,6 +83,8 @@ export const CreateDistance = ({ params }: { params: { id: string } }) => {
   const [isLeavePageModalOpen, setIsLeavePageModalOpen] = useState(false);
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
 
+  const [opened, { open, close }] = useDisclosure(false);
+
   useEffect(() => {
     //  console.log('CreateDistance distanceId', params.id);
     setDistanceId(params.id);
@@ -86,10 +92,10 @@ export const CreateDistance = ({ params }: { params: { id: string } }) => {
 
   useEffect(() => {
     if (!distanceId) {
-    //   handleSetFormValues({
-    //     resetFormValues: reset,
-    //     storedValues: storedDraftNewDistanceFormValues,
-    //   });
+      //   handleSetFormValues({
+      //     resetFormValues: reset,
+      //     storedValues: storedDraftNewDistanceFormValues,
+      //   });
       setValue('id', nanoid());
     }
     // else if (distanceId) {
@@ -137,8 +143,10 @@ export const CreateDistance = ({ params }: { params: { id: string } }) => {
       collectionName: 'distances',
       setError,
       updatedData: formData,
+      storeEditedDocument: storeEditedDistance,
     });
-    setIsLeavePageModalOpen(false);
+    // setIsLeavePageModalOpen(false);
+    close();
     router.back();
   };
   // if (errors) {
@@ -146,8 +154,9 @@ export const CreateDistance = ({ params }: { params: { id: string } }) => {
   // }
 
   const handleOnLeavePageDialogClose = () => {
-    setIsLeavePageModalOpen(false);
-  }
+    // setIsLeavePageModalOpen(false);
+    close();
+  };
 
   return (
     <div className="flex flex-col m-auto  shadow-md rounded-md ">
@@ -159,60 +168,7 @@ export const CreateDistance = ({ params }: { params: { id: string } }) => {
         />
       </Suspense> */}
 
-      <MainPopup
-        isOpened={isLeavePageModalOpen}
-        onClose={() => setIsLeavePageModalOpen(false)}
-        customStyle=" min-w-[600px] min-h-[400px]"
-        // title='Blah-blah'
-      >
-        {/* {distanceId ? (
-          <Dialog
-            content="Unsaved changes. Are you sure you want to leave this page?"
-            buttons={[
-              { buttonText: 'Cancel', buttonOnClick: () => setIsModalOpen(!isModalOpen) },
-              {
-                buttonText: 'Continue',
-                buttonOnClick: () => router.back(),
-              },
-            ]}
-          />
-        ) : (
-          <Dialog
-            content="Submit form?"
-            buttons={[
-              {
-                buttonText: 'No',
-                buttonOnClick: () => {
-                  setIsModalOpen(!isModalOpen);
-                  router.back();
-                },
-              },
-              {
-                buttonText: 'Submit',
-                buttonOnClick: handleSubmit(onSubmitNew),
-              },
-            ]}
-          />
-        )} */}
-        {/* {Object.keys(DIALOGCASES).map(key => {
-          const dialogCase = DIALOGCASES[key as keyof typeof DIALOGCASES];
-          for (let actionKey in dialogCase) {
-            const action = dialogCase[actionKey as keyof typeof dialogCase];
-            if ('content' in action) {
-              return (
-                <Dialog
-                  key={key}
-                  content={action.content}
-                  buttons={action.buttons}
-                />
-              );
-            }
-          }
-          return null;
-        })} */}
-      </MainPopup>
-
-      <Dialog isOpen={isLeavePageModalOpen}
+      {/* <Dialog isOpen={isLeavePageModalOpen}
               title="Unsaved changes"
               message="Are you sure you want to leave this page?"
               cancelButtonTitle="cancel"
@@ -226,32 +182,86 @@ export const CreateDistance = ({ params }: { params: { id: string } }) => {
               cancelButtonTitle="cancel"
               submitButtonTitle="submit"
               onCancel={() => setIsSubmitModalOpen(false)}
-              onSubmit={() => {}} />
+              onSubmit={() => {}} /> */}
 
+      {!isDirty && (
+        <ConfirmationDialog
+          opened={opened}
+          close={close}
+          open={open}
+          message="Save changes?"
+          cancelButtonTitle="Cancel"
+          submitButtonTitle="Submit"
+          onCancel={handleOnLeavePageDialogClose}
+          onSubmit={handleSubmit(onSubmitEdited)}
 
-      <div className="flex justify-between">
-        <button
-          type="button"
-          onClick={() => {
-            console.log('isDirty', isDirty);
-            if (isValid && isDirty) {
-              console.log('isDirty', isDirty);
-              setIsSubmitModalOpen(!isSubmitModalOpen);
-            } else {
-              router.back();
-            }
+          // openModalStyle="!h-12 !bg-yellow-400 text-black hover:bg-yellow-200"
+          // cancelStyle={{
+          //   bg: 'green',
+          // }}
+          // confirmStyle={{
+          //   bg: 'yellow',
+          // }}
+        />
+      )}
+
+      {isValid && isDirty && (
+        <ConfirmationDialog
+          opened={opened}
+          close={close}
+          open={open}
+          message="The changed data will not be saved. Continue?"
+          cancelButtonTitle="Cancel"
+          submitButtonTitle="Proceed"
+          onCancel={() => {
+            close();
+            router.back();
           }}
-          className={' button-active hover:bg-yellow-400'}
-        >
-          Cancel
-        </button>
+          onSubmit={() => {
+            close();
+            router.back();
+          }}
+        />
+      )}
+
+      <div className="flex justify-between ">
+        {!isDirty && (
+          <Button
+            // children={'Back'}
+            onClick={() => {
+              router.back();
+            }}
+            // className={'button-active hover:bg-yellow-400'}
+          >
+            Back
+          </Button>
+        )}
+
+        {isDirty && isValid && (
+          <Button
+            type="button"
+            onClick={() => {
+              console.log('isDirty', isDirty);
+              if (isValid && isDirty) {
+                console.log('isDirty', isDirty);
+                open();
+              } else {
+                router.back();
+              }
+            }}
+            className={' button-active hover:bg-yellow-400'}
+          >
+            Cancel
+          </Button>
+        )}
+
         {!distanceId && (
           // <button onClick={handleSubmit(onSubmit)}>Submit</button>
-          <button
+          <Button
             type="submit"
             onClick={() => {
               if (isValid) {
-                setIsLeavePageModalOpen(!isLeavePageModalOpen);
+                // setIsLeavePageModalOpen(!isLeavePageModalOpen);
               }
             }}
             className={
@@ -259,20 +269,20 @@ export const CreateDistance = ({ params }: { params: { id: string } }) => {
             }
           >
             Submit
-          </button>
+          </Button>
         )}
         {distanceId && (
-          // <button onClick={handleSubmit(onSubmitEdited)}>Save changes</button>
-          <button
+          <Button
             onClick={() => {
               if (isValid) {
-                setIsLeavePageModalOpen(!isLeavePageModalOpen);
+                // setIsLeavePageModalOpen(!isLeavePageModalOpen);
+                open();
               }
             }}
             className={'button-active hover:bg-yellow-400'}
           >
             Save changes
-          </button>
+          </Button>
         )}
       </div>
 

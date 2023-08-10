@@ -5,7 +5,9 @@ import plugin from 'tailwindcss/plugin';
 
 module.exports = {
   mode: 'jit',
-
+  corePlugins: {
+    // preflight: false,
+  },
   content: [
     './app/**/*.{js,ts,jsx,tsx}',
     './pages/**/*.{js,ts,jsx,tsx}',
@@ -39,7 +41,7 @@ module.exports = {
   },
 
   plugins: [
-    require('daisyui'),
+    // require('daisyui'),
     plugin(function ({ addComponents }) {
       addComponents({
         '.sidebar-item': {
@@ -51,7 +53,7 @@ module.exports = {
             {},
         },
         '.button-disabled': {
-          '@apply h-[3rem] opacity-50 bg-gray-100 flex justify-between gap-10 items-center font-semibold select-none text-black disabled font-semibold gap-[0.5rem] uppercase leading-4 text-[0.875rem] rounded-[0.5rem] pl-[1rem] pr-[1rem] border-[1px] border-[#FBBD23]':
+          '@apply h-[3rem] opacity-50 bg-gray-100 flex justify-between gap-10 items-center font-semibold select-none text-black font-semibold gap-[0.5rem] uppercase leading-4 text-[0.875rem] rounded-[0.5rem] pl-[1rem] pr-[1rem] border-[1px] border-[#FBBD23]':
             {},
         },
         '.select': {
@@ -61,14 +63,14 @@ module.exports = {
     }),
   ],
 
-  daisyui: {
-    themes: ['light', 'dark', ], // true: all themes | false: only light + dark | array: specific themes like this ["light", "dark", "cupcake"]
-    darkTheme: 'dark', // name of one of the included themes for dark mode
-    base: true, // applies background color and foreground color for root element by default
-    styled: true, // include daisyUI colors and design decisions for all components
-    utils: true, // adds responsive and modifier utility classes
-    rtl: false, // rotate style direction from left-to-right to right-to-left. You also need to add dir="rtl" to your html tag and install `tailwindcss-flip` plugin for Tailwind CSS.
-    prefix: '', // prefix for daisyUI classnames (components, modifiers and responsive class names. Not colors)
-    logs: true, // Shows info about daisyUI version and used config in the console when building your CSS
-  },
+  // daisyui: {
+  //   themes: ['light', 'dark', ], // true: all themes | false: only light + dark | array: specific themes like this ["light", "dark", "cupcake"]
+  //   darkTheme: 'dark', // name of one of the included themes for dark mode
+  //   base: true, // applies background color and foreground color for root element by default
+  //   styled: true, // include daisyUI colors and design decisions for all components
+  //   utils: true, // adds responsive and modifier utility classes
+  //   rtl: false, // rotate style direction from left-to-right to right-to-left. You also need to add dir="rtl" to your html tag and install `tailwindcss-flip` plugin for Tailwind CSS.
+  //   prefix: '', // prefix for daisyUI classnames (components, modifiers and responsive class names. Not colors)
+  //   logs: true, // Shows info about daisyUI version and used config in the console when building your CSS
+  // },
 };

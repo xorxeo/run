@@ -71,6 +71,7 @@ type HandleSubmitEditedFormProps = {
   collectionName: string;
   updatedData: DistanceFormValues | EventFormValues;
   setError: any;
+  storeEditedDocument: ActionCreatorWithPayload<any>;
 };
 
 
@@ -94,10 +95,12 @@ export const useFormManager = () => {
     collectionName,
     updatedData,
     setError,
+    storeEditedDocument,
   }: HandleSubmitEditedFormProps) => {
     console.log('updatedData', updatedData);
     try {
       firebaseApp.updateDocument(collectionName, updatedData);
+      dispatch(storeEditedDocument(updatedData));
     } catch (error) {
       if (error instanceof Error) {
         setError('root', { message: error.message });

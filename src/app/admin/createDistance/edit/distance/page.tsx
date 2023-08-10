@@ -3,7 +3,9 @@
 import { fetchCollection } from '@/app/actions';
 import {
   deleteStoredDistanceById,
-  selectDistancesFromDatabase, selectIsInitialFetched, setInitialFetched,
+  selectDistancesFromDatabase,
+  selectIsInitialFetched,
+  setInitialFetched,
   storeDistancesFromDatabase,
 } from '@/app/redux/features/eventFormSlice';
 import { useAppDispatch, useAppSelector } from '@/app/redux/hooks';
@@ -23,18 +25,22 @@ import { useInitialDistanceFetch } from '@/app/admin/hooks/use-initial-distance-
 export default function EditDistance({ params }: { params: { id: string } }) {
   const { handleEntityEdit, handleEntityDelete } = useFormManager();
 
-  const {error, loading, distancesFromDatabase} = useInitialDistanceFetch();
+  const { error, loading, distancesFromDatabase } = useInitialDistanceFetch();
 
   return (
     <div className="edit-distance-container flex w-full">
-      {loading ? <LoadingSkeleton /> : <PreviewEntitiesList
-        title="Edit Distance"
-        entities={distancesFromDatabase}
-        onEdit={() => handleEntityEdit('admin/createDistance/edit/distance')}
-        onDelete={() =>
-          handleEntityDelete('distances', deleteStoredDistanceById)
-        }
-      />}
+      {loading ? (
+        <LoadingSkeleton />
+      ) : (
+        <PreviewEntitiesList
+          title="Edit Distance"
+          entities={distancesFromDatabase}
+          onEdit={() => handleEntityEdit('admin/createDistance/edit/distance')}
+          onDelete={() =>
+            handleEntityDelete('distances', deleteStoredDistanceById)
+          }
+        />
+      )}
 
       {error && <div>{error}</div>}
     </div>
