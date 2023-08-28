@@ -30,7 +30,7 @@ export default function Admin() {
     <div>
       
       {isAdmin && user ? (
-        <div className="admin-container flex w-full h-[90vh]">
+        <div className="admin-container flex m-auto">
           Hello, {user.email}
         </div>
       ) : (

@@ -9,8 +9,8 @@ export default function AdminLayout({
 }) {
   // console.log('children', children)
   return (
-    <div className="admin-container flex w-[100vw] h-[90vh]">
-      <div className="sidebar-container flex  w-[30%] h-full m-4 justify-center rounded-lg border-2 border-black">
+    <div className="admin-container flex h-[90dvh]">
+      <div className="sidebar-container flex w-[30%] h-full m-4 justify-center rounded-lg border-2 border-black">
         <Sidebar />
       </div>
       <Suspense fallback={'Loading!!!!!' && <LoadingSkeleton />}>

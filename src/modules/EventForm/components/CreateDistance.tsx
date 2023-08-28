@@ -36,7 +36,7 @@ import { NavigationEvents } from '@/services/NavigationEvents';
 import { MainPopup } from '@/components/mainPopup/MainPopup';
 import { Dialog } from '@/components/dialog/Dialog';
 import { Modal } from '@/components/modal/Modal';
-import { ConfirmationDialog } from '@/components/modal/ModalWindow';
+import { ConfirmationDialog } from '@/components/modal/ConfirmationDialog';
 import { useDisclosure } from '@mantine/hooks';
 import { Button } from '@mantine/core';
 
@@ -127,6 +127,7 @@ export const CreateDistance = ({ params }: { params: { id: string } }) => {
   }, []);
 
   const onSubmitNew: SubmitHandler<DistanceFormValues> = formData => {
+    console.log('fdfdf');
     handleSubmitNewForm({
       onSubmitData: formData,
       collectionName: 'distances',
@@ -159,7 +160,7 @@ export const CreateDistance = ({ params }: { params: { id: string } }) => {
   };
 
   return (
-    <div className="flex flex-col m-auto  shadow-md rounded-md ">
+    <div className="flex flex-col m-auto w-[100%] items-center shadow-md rounded-md bg-slate-100">
       {/* <Suspense fallback={'Suspense'}>
         <NavigationEvents
           sideEffectLogic={() => {
@@ -215,7 +216,7 @@ export const CreateDistance = ({ params }: { params: { id: string } }) => {
           submitButtonTitle="Proceed"
           onCancel={() => {
             close();
-            router.back();
+            // router.back();
           }}
           onSubmit={() => {
             close();
@@ -258,12 +259,10 @@ export const CreateDistance = ({ params }: { params: { id: string } }) => {
         {!distanceId && (
           // <button onClick={handleSubmit(onSubmit)}>Submit</button>
           <Button
-            type="submit"
-            onClick={() => {
-              if (isValid) {
-                // setIsLeavePageModalOpen(!isLeavePageModalOpen);
-              }
-            }}
+            // onClick={() => {
+            //   setIsLeavePageModalOpen(!isLeavePageModalOpen);
+            //   console.log('sub');
+            // }}
             className={
               isValid ? 'button-active bg-yellow-400 ' : 'button-disabled'
             }
@@ -290,7 +289,7 @@ export const CreateDistance = ({ params }: { params: { id: string } }) => {
 
       <form
         onSubmit={handleSubmit(onSubmitNew)}
-        className="flex flex-col w-[80%] lg:w-[55%] gap-3"
+        className="flex flex-col w-[80%] lg:w-[55%] gap-2"
       >
         <input type="hidden" {...register('id')} />
 
@@ -301,10 +300,13 @@ export const CreateDistance = ({ params }: { params: { id: string } }) => {
           autoFocus
           control={control}
           label="Distance name"
-          style={inputStyle}
+          // style={inputStyle}
+          sx={{}}
+          withAsterisk={true}
         />
 
         <FormTextField
+          sx={{ height: '62px' }}
           name="cost"
           placeholder="distance cost"
           control={control}
