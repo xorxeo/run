@@ -1,6 +1,5 @@
 import { FC } from 'react';
-import { Button, Modal, ModalProps, Text } from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
+import { Button, Modal, Text, useMantineTheme } from '@mantine/core';
 
 type ConfirmationDialogProps = {
   opened: boolean;
@@ -23,13 +22,30 @@ export const ConfirmationDialog: FC<ConfirmationDialogProps> = ({
   onCancel,
   onSubmit,
 }) => {
-    // const [{close}] = useDisclosure(false);
+  // const [{close}] = useDisclosure(false);
+  
+  const theme = useMantineTheme();
 
   return (
-    <Modal opened={opened} onClose={close}>
+    <Modal
+      opened={opened}
+      onClose={close}
+      size="lg"
+      centered={true}
+      overlayProps={{
+        color:
+          theme.colorScheme === 'dark'
+            ? theme.colors.dark[9]
+            : theme.colors.gray[2],
+        opacity: 0.55,
+        blur: 3,
+      }}
+    >
       <Text>{message}</Text>
       <Button onClick={onCancel}>{cancelButtonTitle}</Button>
-      <Button type="submit" onClick={onSubmit}>{submitButtonTitle}</Button>
+      <Button type="submit" onClick={onSubmit}>
+        {submitButtonTitle}
+      </Button>
     </Modal>
   );
 };

@@ -1,8 +1,6 @@
 @config "../../tailwind.config.js";
 
-@import '../components/overlayingPopup/overlayingPopup.module.css';
-@import '../components/mainPopup/mainPopup.module.css';
-@import '../components/dialog/dialog.module.css';
+
 
 @tailwind base;
 @tailwind components;

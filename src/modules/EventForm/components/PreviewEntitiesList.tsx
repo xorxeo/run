@@ -8,6 +8,8 @@ import { DocumentData } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { set } from 'zod';
 import { isDistances } from '@/services/hooks/useFormManager';
+import { ConfirmationDialog } from '@/components/modal/ConfirmationDialog';
+import { useDisclosure } from '@mantine/hooks';
 
 export type Entities = { id: string; entityName: string };
 
@@ -20,21 +22,25 @@ type PreviewEntitiesListProps = {
 
 export const PreviewEntitiesList = (props: PreviewEntitiesListProps) => {
   const { entities, onDelete, onEdit, title } = props;
+  
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
-  // const [convertedData, setConvertedData] = useState<DocumentData[]>([]);
+  const [opened, { open, close }] = useDisclosure(false);
 
-  const handleDelete = (id: string) => () => onDelete ? onDelete()(id) : null;
+  const handleDelete = (id: string) => () => {
+    onDelete ? onDelete()(id) : null;
+    setIsDeleteModalOpen(!isDeleteModalOpen);
+    close();
+  };
+
   const handleEdit = (id: string) => () => onEdit ? onEdit()(id) : null;
-
-  // useEffect(() => {
-  //   setConvertedData(entities);
-  // }, [entities]);
 
   return (
     <div className="preview-entities-list-container flex flex-col w-full items-center">
       <h2 className="select-none">{title}</h2>
 
-      {typeof entities === 'object' && isDistances(entities) &&
+      {typeof entities === 'object' &&
+        isDistances(entities) &&
         entities.map(entity => (
           <div
             key={entity.id}
@@ -56,7 +62,10 @@ export const PreviewEntitiesList = (props: PreviewEntitiesListProps) => {
             <button
               className=" flex w-[10%] min-h-[3rem] items-center justify-center border-[1px] hover:bg-[#FBBD23] rounded-md"
               type="button"
-              onClick={handleDelete(entity.id)}
+              onClick={() => {
+                setIsDeleteModalOpen(!isDeleteModalOpen);
+                open();
+              }}
             >
               <Image
                 className="  "
@@ -66,6 +75,17 @@ export const PreviewEntitiesList = (props: PreviewEntitiesListProps) => {
                 width={20}
               ></Image>
             </button>
+
+            <ConfirmationDialog
+              opened={opened}
+              close={close}
+              open={open}
+              message="Are you sure you want to delete this distance?"
+              cancelButtonTitle="No"
+              submitButtonTitle="Yes"
+              onCancel={() => close()}
+              onSubmit={handleDelete(entity.id)}
+            />
           </div>
         ))}
     </div>

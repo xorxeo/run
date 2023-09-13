@@ -28,17 +28,13 @@ import {
   selectDistancesFromDatabase,
 } from '../../../app/redux/features/eventFormSlice';
 import { WEB_LINK_INPUT_MASK } from './create-event-form/create-event-form.consts';
-import { inputStyle } from '@/styles/eventFormStyles';
 import { distanceFormInputsNames } from '../event-form.typings';
 import { useFormManager } from '@/services/hooks/useFormManager';
-import { OverlayingPopup } from '@/components/overlayingPopup/OverlayingPopup';
 import { NavigationEvents } from '@/services/NavigationEvents';
-import { MainPopup } from '@/components/mainPopup/MainPopup';
-import { Dialog } from '@/components/dialog/Dialog';
-import { Modal } from '@/components/modal/Modal';
 import { ConfirmationDialog } from '@/components/modal/ConfirmationDialog';
 import { useDisclosure } from '@mantine/hooks';
 import { Button } from '@mantine/core';
+import { set } from 'zod';
 
 // import {experimental_useFormStatus} from 'react-dom'
 
@@ -82,6 +78,8 @@ export const CreateDistance = ({ params }: { params: { id: string } }) => {
 
   const [isLeavePageModalOpen, setIsLeavePageModalOpen] = useState(false);
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
+  const [isSubmitNewFormModalOpen, setIsSubmitNewFormModalOpen] =
+    useState(false);
 
   const [opened, { open, close }] = useDisclosure(false);
 
@@ -137,6 +135,7 @@ export const CreateDistance = ({ params }: { params: { id: string } }) => {
       setError,
     });
     setIsLeavePageModalOpen(false);
+     router.push('/admin/createDistance/edit/distance');
   };
 
   const onSubmitEdited: SubmitHandler<DistanceFormValues> = formData => {
@@ -154,69 +153,32 @@ export const CreateDistance = ({ params }: { params: { id: string } }) => {
   //   console.log('errors', errors)
   // }
 
-  const handleOnLeavePageDialogClose = () => {
-    // setIsLeavePageModalOpen(false);
-    close();
-  };
-
   return (
     <div className="flex flex-col m-auto w-[100%] items-center shadow-md rounded-md bg-slate-100">
-      {/* <Suspense fallback={'Suspense'}>
-        <NavigationEvents
-          sideEffectLogic={() => {
-            setIsModalOpen(!isModalOpen);
-          }}
-        />
-      </Suspense> */}
 
-      {/* <Dialog isOpen={isLeavePageModalOpen}
-              title="Unsaved changes"
-              message="Are you sure you want to leave this page?"
-              cancelButtonTitle="cancel"
-              submitButtonTitle="submit"
-              onCancel={handleOnLeavePageDialogClose}
-              onSubmit={() => {}} />
-
-      <Dialog isOpen={isSubmitModalOpen}
-              title="Submit form"
-              message="Are you sure you want to submit this form?"
-              cancelButtonTitle="cancel"
-              submitButtonTitle="submit"
-              onCancel={() => setIsSubmitModalOpen(false)}
-              onSubmit={() => {}} /> */}
-
-      {!isDirty && (
+      {isSubmitModalOpen && (
         <ConfirmationDialog
           opened={opened}
           close={close}
           open={open}
           message="Save changes?"
           cancelButtonTitle="Cancel"
-          submitButtonTitle="Submit"
-          onCancel={handleOnLeavePageDialogClose}
+          submitButtonTitle="Save"
+          onCancel={() => close()}
           onSubmit={handleSubmit(onSubmitEdited)}
-
-          // openModalStyle="!h-12 !bg-yellow-400 text-black hover:bg-yellow-200"
-          // cancelStyle={{
-          //   bg: 'green',
-          // }}
-          // confirmStyle={{
-          //   bg: 'yellow',
-          // }}
         />
       )}
 
-      {isValid && isDirty && (
+      {isLeavePageModalOpen && (
         <ConfirmationDialog
           opened={opened}
           close={close}
           open={open}
           message="The changed data will not be saved. Continue?"
-          cancelButtonTitle="Cancel"
-          submitButtonTitle="Proceed"
+          cancelButtonTitle="Отменить"
+          submitButtonTitle="Продолжить"
           onCancel={() => {
             close();
-            // router.back();
           }}
           onSubmit={() => {
             close();
@@ -225,56 +187,65 @@ export const CreateDistance = ({ params }: { params: { id: string } }) => {
         />
       )}
 
-      <div className="flex justify-between ">
-        {!isDirty && (
-          <Button
-            // children={'Back'}
-            onClick={() => {
-              router.back();
-            }}
-            // className={'button-active hover:bg-yellow-400'}
-          >
-            Back
-          </Button>
-        )}
+      {isSubmitNewFormModalOpen && (
+        <ConfirmationDialog
+          opened={opened}
+          close={close}
+          open={open}
+          message="Submit New distance to DB?"
+          cancelButtonTitle="Cancel"
+          submitButtonTitle="Submit"
+          onCancel={() => close()}
+          onSubmit={handleSubmit(onSubmitNew)}
+        />
+      )}
 
-        {isDirty && isValid && (
+      <div className="flex justify-between ">
+      
           <Button
             type="button"
+            color="red"
+            uppercase={true}
             onClick={() => {
-              console.log('isDirty', isDirty);
+              console.log('dfd');
               if (isValid && isDirty) {
-                console.log('isDirty', isDirty);
+                setIsLeavePageModalOpen(!isLeavePageModalOpen);
                 open();
+                // router.back();
               } else {
                 router.back();
               }
             }}
-            className={' button-active hover:bg-yellow-400'}
           >
             Cancel
           </Button>
-        )}
+        
 
         {!distanceId && (
           // <button onClick={handleSubmit(onSubmit)}>Submit</button>
           <Button
-            // onClick={() => {
-            //   setIsLeavePageModalOpen(!isLeavePageModalOpen);
-            //   console.log('sub');
-            // }}
-            className={
-              isValid ? 'button-active bg-yellow-400 ' : 'button-disabled'
-            }
+            type="button"
+            color={isValid ? 'yellow' : 'gray'}
+            uppercase={true}
+            disabled={isValid ? false : true}
+            onClick={() => {
+              setIsSubmitNewFormModalOpen(!isSubmitNewFormModalOpen);
+              open();
+             
+              console.log('sub');
+            }}
+            
           >
             Submit
           </Button>
         )}
+
         {distanceId && (
           <Button
+            disabled={isDirty ? false : true}
             onClick={() => {
               if (isValid) {
-                // setIsLeavePageModalOpen(!isLeavePageModalOpen);
+                setIsSubmitModalOpen(!isSubmitModalOpen);
                 open();
               }
             }}
@@ -300,13 +271,11 @@ export const CreateDistance = ({ params }: { params: { id: string } }) => {
           autoFocus
           control={control}
           label="Distance name"
-          // style={inputStyle}
-          sx={{}}
           withAsterisk={true}
+          inputSize="sm"
         />
 
         <FormTextField
-          sx={{ height: '62px' }}
           name="cost"
           placeholder="distance cost"
           control={control}
@@ -314,7 +283,7 @@ export const CreateDistance = ({ params }: { params: { id: string } }) => {
           label="Cost"
           mask={'000 000 000 000'}
           replacement={'0'}
-          style={inputStyle}
+          inputSize="sm"
         />
 
         <FormTextField
@@ -323,7 +292,7 @@ export const CreateDistance = ({ params }: { params: { id: string } }) => {
           type="text"
           label="Distance length"
           placeholder="distance length in meters"
-          style={inputStyle}
+          inputSize="sm"
         />
 
         <InputMask<FormTextFieldProps>
@@ -335,7 +304,7 @@ export const CreateDistance = ({ params }: { params: { id: string } }) => {
           placeholder="https://www.example.com"
           mask={WEB_LINK_INPUT_MASK.mask}
           replacement={WEB_LINK_INPUT_MASK.replacement}
-          style={inputStyle}
+          inputSize="sm"
         />
 
         <InputMask<FormTextFieldProps>
@@ -346,7 +315,7 @@ export const CreateDistance = ({ params }: { params: { id: string } }) => {
           placeholder="https://www.example.com"
           mask={WEB_LINK_INPUT_MASK.mask}
           replacement={WEB_LINK_INPUT_MASK.replacement}
-          style={inputStyle}
+          inputSize="sm"
         />
 
         <FormTextField
@@ -355,7 +324,7 @@ export const CreateDistance = ({ params }: { params: { id: string } }) => {
           type="text"
           label="Refreshment points"
           placeholder="number of food outlets"
-          style={inputStyle}
+          inputSize="sm"
         />
 
         <span className="flex justify-center">Start point</span>
@@ -364,7 +333,7 @@ export const CreateDistance = ({ params }: { params: { id: string } }) => {
           control={control}
           label="Description"
           placeholder="start point description"
-          style={inputStyle}
+          inputSize="sm"
         />
 
         <div className="flex flex-row space-x-2">
@@ -376,8 +345,9 @@ export const CreateDistance = ({ params }: { params: { id: string } }) => {
             label="Start point longitude"
             min={-180}
             max={180}
-            style={inputStyle}
+            inputSize="sm"
           />
+
           <FormTextField
             name="latitude"
             type="text"
@@ -386,7 +356,7 @@ export const CreateDistance = ({ params }: { params: { id: string } }) => {
             placeholder="latitude"
             min={-90}
             max={90}
-            style={inputStyle}
+            inputSize="sm"
           />
         </div>
 
@@ -398,7 +368,7 @@ export const CreateDistance = ({ params }: { params: { id: string } }) => {
           placeholder='start time in format "HH:MM"'
           mask={'__:__'}
           replacement={'_'}
-          style={inputStyle}
+          inputSize="sm"
         />
 
         <FormTextField
@@ -406,7 +376,7 @@ export const CreateDistance = ({ params }: { params: { id: string } }) => {
           control={control}
           label="Time limit"
           placeholder="time limit"
-          style={inputStyle}
+          inputSize="sm"
         />
 
         <FormTextField
@@ -414,7 +384,7 @@ export const CreateDistance = ({ params }: { params: { id: string } }) => {
           control={control}
           label="Total elevation"
           placeholder="total elevation in meters"
-          style={inputStyle}
+          inputSize="sm"
         />
 
         {/* <div>

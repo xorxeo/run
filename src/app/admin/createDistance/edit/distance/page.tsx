@@ -10,7 +10,6 @@ import {
 } from '@/app/redux/features/eventFormSlice';
 import { useAppDispatch, useAppSelector } from '@/app/redux/hooks';
 import { EventsList } from '@/components/eventsList';
-import { LoadingSkeleton } from '@/components/loading-skeleton/LoadingSkeleton';
 import firebaseApp from '@/firebase/initFirebase';
 import {
   Entities,
@@ -21,6 +20,7 @@ import { useFormManager } from '@/services/hooks/useFormManager';
 import { DocumentData } from 'firebase/firestore';
 import { Suspense, use, useEffect, useState } from 'react';
 import { useInitialDistanceFetch } from '@/app/admin/hooks/use-initial-distance-fetch';
+import { Loader } from '@mantine/core';
 
 export default function EditDistance({ params }: { params: { id: string } }) {
   const { handleEntityEdit, handleEntityDelete } = useFormManager();
@@ -30,7 +30,7 @@ export default function EditDistance({ params }: { params: { id: string } }) {
   return (
     <div className="edit-distance-container flex w-full">
       {loading ? (
-        <LoadingSkeleton />
+        <Loader variant="bars" color="#facc15" />
       ) : (
         <PreviewEntitiesList
           title="Edit Distance"

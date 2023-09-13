@@ -27,12 +27,9 @@ export default function Admin() {
   }, [user, router]);
 
   return (
-    <div>
-      
+    <div className="admin-container flex m-auto justify-center ">
       {isAdmin && user ? (
-        <div className="admin-container flex m-auto">
-          Hello, {user.email}
-        </div>
+        <h1>Hello, {user.email}</h1>
       ) : (
         <h1>Only logged in users can view this page</h1>
       )}

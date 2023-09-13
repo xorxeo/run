@@ -2,10 +2,10 @@
 
 import { fetchCollection } from '@/app/actions';
 import { EventsList } from '@/components/eventsList';
-import { LoadingSkeleton } from '@/components/loading-skeleton/LoadingSkeleton';
 import firebaseApp from '@/firebase/initFirebase';
 import { PreviewEntitiesList } from '@/modules/EventForm/components/PreviewEntitiesList';
 import { DistanceFormValues } from '@/modules/EventForm/event-form.schema';
+import { Loader } from '@mantine/core';
 import { DocumentData } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 
@@ -30,7 +30,10 @@ export default function EditEvent() {
   return (
     <div>
       Edit Event
-    <LoadingSkeleton/>
+      <Loader
+        variant='bars'
+        color='#facc15'
+      />
       {/* <EventsList /> */}
       {/* <PreviewEntitiesList entities={entities} /> */}
     </div>

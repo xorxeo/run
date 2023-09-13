@@ -17,10 +17,11 @@ export function Providers({ children }: { children: ReactNode }) {
     <MantineProvider
       emotionCache={myCache}
       // theme={{}}
+     
       withGlobalStyles
       withNormalizeCSS
     >
-      <ModalsProvider >
+      <ModalsProvider>
         <StoreProvider>
           <AuthContextProvider>{children}</AuthContextProvider>
         </StoreProvider>

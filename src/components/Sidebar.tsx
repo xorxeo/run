@@ -5,9 +5,31 @@ import { usePathname } from 'next/navigation';
 import { EventsList } from './eventsList';
 import { use, useEffect, useRef, useState } from 'react';
 
+import {
+  Box,
+  Collapse,
+  Navbar,
+  ScrollArea,
+  createStyles,
+  rem,
+} from '@mantine/core';
+import { LinksGroup } from './LinksGroup';
+import { NavLink } from '@/services/NavLink';
+
 type SidebarItem = {
   title: string;
   path: string;
+};
+
+type Links = {
+  label: string;
+  link: string;
+  exact: boolean;
+};
+
+type NavbarItems = {
+  label: string;
+  links: Links[];
 };
 
 type SidebarChapter = 'Events Management' | 'Distances Management';
@@ -16,76 +38,61 @@ type Item = {
   [key in SidebarChapter]?: SidebarItem[];
 };
 
+const items: Item = {
+  'Events Management': [
+    { path: '/admin/createEvent', title: 'Create new event' },
+    { path: '/admin/createEvent/edit/event', title: 'Edit event' },
+  ],
+
+  'Distances Management': [
+    {
+      path: '/admin/createDistance',
+      title: 'Create new distance',
+    },
+    {
+      path: '/admin/createDistance/edit/distance',
+      title: 'Edit distance',
+    },
+  ],
+};
+
+const data: NavbarItems[] = [
+  {
+    label: 'Events',
+    links: [
+      { label: 'Create new event', link: '/admin/createEvent', exact: true },
+      {
+        label: 'Edit event',
+        link: '/admin/createEvent/edit/event',
+        exact: false,
+      },
+    ],
+  },
+  {
+    label: 'Distances',
+    links: [
+      {
+        label: 'Create new distance',
+        link: '/admin/createDistance',
+        exact: true,
+      },
+      {
+        label: 'Edit distance',
+        link: '/admin/createDistance/edit/distance',
+        exact: false,
+      },
+    ],
+  },
+];
+
 export const Sidebar = () => {
-  const linkRefs = useRef<Array<HTMLElement | null>>([]);
-
-  const [active, setActive] = useState('');
-
-  const pathName = usePathname();
-
-  const handleSetActive = (path: string) => {
-    setActive(path);
-  };
-
-  const handleGoBack = () => {
-    setActive('');
-  };
-
-  useEffect(() => {
-    
-      if (pathName) {
-        setActive(pathName);
-      }
-      // console.log('pathName === active', pathName === active);
-    
-  }, [pathName]);
-
-  const items: Item = {
-    'Events Management': [
-      { path: '/admin/createEvent', title: 'Create new event' },
-      { path: '/admin/createEvent/edit/event', title: 'Edit event' },
-    ],
-
-    'Distances Management': [
-      {
-        path: '/admin/createDistance',
-        title: 'Create new distance',
-      },
-      {
-        path: '/admin/createDistance/edit/distance',
-        title: 'Edit distance',
-      },
-    ],
-  };
+  const links = data.map(item => <LinksGroup {...item} key={item.label} />);
 
   return (
-    <div className="side-bar-container flex flex-col w-full">
-      {Object.entries(items).map(([key, values]) => (
-        <div
-          key={key}
-          className="side-bar-chapter flex flex-col items-center w-full"
-        >
-          <h2 className="">{key}</h2>
-
-          {values.map((item, index) => (
-            <Link
-              href={item.path}
-              ref={(el) => (linkRefs.current[index] = el)}
-              key={item.path}
-              className={`${
-                active === item.path
-                  ? 'sidebar-item  bg-[#FBBD23]'
-                  : 'sidebar-item'
-              }`}
-              onClick={() => {
-                handleSetActive(item.path);
-              }}
-            >
-              {item.title}
-            </Link>
-          ))}
-        </div>
-      ))}
+    <div className="side-bar-container flex flex-col w-full ">
+      <Navbar.Section grow mt="xl">
+        {links}
+      </Navbar.Section>
     </div>
   );
 };
