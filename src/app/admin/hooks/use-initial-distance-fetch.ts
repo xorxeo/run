@@ -5,7 +5,7 @@ import {
   storeDistancesFromDatabase,
 } from '@/app/redux/features/eventFormSlice';
 import { DistanceFormValues } from '@/modules/EventForm/event-form.schema';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '@/app/redux/hooks';
 
 export type UseInitialDistanceFetchReturn = {
@@ -23,7 +23,7 @@ export const useInitialDistanceFetch = (): UseInitialDistanceFetchReturn => {
   const distancesFromDatabase = useAppSelector(selectDistancesFromDatabase);
   const isInitialFetched = useAppSelector(selectIsInitialFetched);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     console.log('fetchData');
     const res = await fetchCollection('distances');
@@ -33,13 +33,13 @@ export const useInitialDistanceFetch = (): UseInitialDistanceFetchReturn => {
     dispatch(storeDistancesFromDatabase(res as DistanceFormValues[]));
     dispatch(setInitialFetched(true));
     setLoading(false);
-  };
+  }, [dispatch]);
 
   useEffect(() => {
     if (!isInitialFetched) {
       fetchData();
     }
-  }, []);
+  }, [fetchData, isInitialFetched]);
 
   return {
     error,

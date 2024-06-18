@@ -2,11 +2,13 @@
 
 import { eventFormSlice } from '@/app/redux/features/eventFormSlice';
 import { configureStore } from '@reduxjs/toolkit';
+import { MapCreatorSlice } from './features/MapCreatorSlice';
 
 export const store = 
   configureStore({
     reducer: {
       [eventFormSlice.name]: eventFormSlice.reducer, 
+      [MapCreatorSlice.name]: MapCreatorSlice.reducer,
     },
     devTools: true,
     

@@ -4,7 +4,8 @@ module.exports = {
     // require.resolve("postcss-nested")({
     //   bubble: ["screen"],
     // }),
-    require.resolve("tailwindcss"),
-    require.resolve("autoprefixer"),
+    require.resolve('tailwindcss'),
+    require.resolve('autoprefixer'),
+    require.resolve('postcss-import'),
   ],
 };

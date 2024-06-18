@@ -83,6 +83,16 @@ const data: NavbarItems[] = [
       },
     ],
   },
+  {
+    label: 'Create Map',
+    links: [
+      {
+        label: 'Create Map',
+        link: '/admin/createMap',
+        exact: true,
+      },
+    ],
+  },
 ];
 
 export const Sidebar = () => {

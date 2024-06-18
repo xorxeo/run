@@ -1,6 +1,7 @@
 'use client';
 
 import { CreateDistance } from '@/modules/EventForm/components/CreateDistance';
+import { CreateMap } from '@/modules/EventForm/components/create-map/CreateMap';
 import {
   DISTANCE_DEFAULT_VALUES,
   distancesSchema,
@@ -17,9 +18,11 @@ export default function addNewDistance({
   // console.log('params.id addNewDistance', params.id);
   // const CreateNewDistance = FormManager(CreateDistance)
   // return <CreateNewDistance params={params}/>;
+
   return (
-
+    <div className="flex flex-col">
       <CreateDistance params={params} />
-
+      {/* <CreateMap /> */}
+    </div>
   );
 }

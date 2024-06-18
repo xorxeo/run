@@ -17,7 +17,7 @@ import {
   DistanceFormValues,
   EventFormValues,
 } from '@/modules/EventForm/event-form.schema';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import firebaseApp from '@/firebase/initFirebase';
 import { collection } from 'firebase/firestore';
 import { useAppDispatch, useAppSelector } from '@/app/redux/hooks';
@@ -90,6 +90,7 @@ export const useFormManager = () => {
   const storedEvents = useAppSelector(selectEventsFromDatabase);
 
   const router = useRouter();
+  const path = usePathname()
 
   const handleSubmitEditedForm = async ({
     collectionName,
@@ -174,7 +175,7 @@ export const useFormManager = () => {
     };
   };
 
-  const handleEntityEdit = (path: string) => {
+  const handleEntityEdit = () => {
     return (id: string) => router.push(`${path}/${id}`);
   };
 

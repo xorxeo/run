@@ -9,12 +9,12 @@ export default function AdminLayout({
 }) {
   // console.log('children', children)
   return (
-    <div className="admin-container flex h-[90dvh]">
-      <div className="sidebar-container flex w-[30%] h-full m-4 justify-center rounded-lg border-2 border-black">
+    <div className="admiN-container flex h-screen pt-12 bg-gray-500">
+      <div className="sidebar-container flex w-[30%] bg-gray-400 m-[1px] justify-center rounded-lg  shadow-xl">
         <Sidebar />
       </div>
       {/* <Suspense fallback={'Loading!!!!!' }> */}
-      <div className="children-container flex w-[70%] h-full m-4 justify-center rounded-lg border-2 border-black">
+      <div className="children-container flex w-[70%] bg-gray-400 m-[1px] justify-center rounded-lg  shadow-xl">
         {children}
       </div>
       {/* </Suspense> */}

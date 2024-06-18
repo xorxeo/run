@@ -6,6 +6,7 @@ import { useAuthContext } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { EventsList } from '@/components/eventsList';
 import { Sidebar } from '@/components/Sidebar';
+import Script from 'next/script';
 
 // import { useAuth } from "@/containers/AuthUserContainer";
 
@@ -27,12 +28,19 @@ export default function Admin() {
   }, [user, router]);
 
   return (
-    <div className="admin-container flex m-auto justify-center ">
-      {isAdmin && user ? (
-        <h1>Hello, {user.email}</h1>
-      ) : (
-        <h1>Only logged in users can view this page</h1>
-      )}
-    </div>
+    <>
+      {/* <Script
+        id="maps"
+        src={`https://api-maps.yandex.ru/v3/?apikey=${process.env.NEXT_PUBLIC_YMAP_APIKEY}&lang=ru_RU`}
+     
+      /> */}
+      <div className="admin-children-container">
+        {isAdmin && user ? (
+          <h1>Hello, {user.email}</h1>
+        ) : (
+          <h1>Only logged in users can view this page</h1>
+        )}
+      </div>
+    </>
   );
 }

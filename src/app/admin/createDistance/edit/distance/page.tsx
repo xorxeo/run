@@ -26,7 +26,8 @@ export default function EditDistance({ params }: { params: { id: string } }) {
   const { handleEntityEdit, handleEntityDelete } = useFormManager();
 
   const { error, loading, distancesFromDatabase } = useInitialDistanceFetch();
-
+  // console.log('error', error)
+  
   return (
     <div className="edit-distance-container flex w-full">
       {loading ? (
@@ -35,7 +36,7 @@ export default function EditDistance({ params }: { params: { id: string } }) {
         <PreviewEntitiesList
           title="Edit Distance"
           entities={distancesFromDatabase}
-          onEdit={() => handleEntityEdit('admin/createDistance/edit/distance')}
+          onEdit={() => handleEntityEdit()}
           onDelete={() =>
             handleEntityDelete('distances', deleteStoredDistanceById)
           }

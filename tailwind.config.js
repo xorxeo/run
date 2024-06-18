@@ -1,7 +1,7 @@
-import { fontFamily } from 'tailwindcss/defaultTheme';
 /** @type {import('tailwindcss').Config} */
 
 import plugin from 'tailwindcss/plugin';
+
 
 module.exports = {
   mode: 'jit',

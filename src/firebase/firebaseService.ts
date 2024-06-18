@@ -69,10 +69,10 @@ class FirebaseService {
       const documentRef = doc(collectionRef, data.id);
       await setDoc(documentRef, data);
       console.log('Document written with ID: ', documentRef.id);
-      return {success: true, id: documentRef.id};
+      return { success: true, id: documentRef.id };
     } catch (error) {
       const { message } = error as FirebaseError;
-      return {error: message};
+      return { error: message };
     }
   }
 
@@ -82,10 +82,9 @@ class FirebaseService {
       const collectionRef = collection(this.firestore, collectionName);
       const documentRef = doc(collectionRef, data.id);
       await updateDoc(documentRef, data);
-
     } catch (error) {
       const { message } = error as FirebaseError;
-      return {error: message};
+      return { error: message };
     }
   }
 
@@ -98,7 +97,7 @@ class FirebaseService {
       console.log('delete documentRef', documentRef);
     } catch (error) {
       const { message } = error as FirebaseError;
-      return {error: message};
+      return { error: message };
     }
   }
 
@@ -107,15 +106,18 @@ class FirebaseService {
       const collectionRef = collection(this.firestore, collectionName);
       const querySnapshot = await getDocs(collectionRef);
       if (querySnapshot.empty) {
-       throw new Error(
-         (error = `Collection ${collectionName} does not exist or is empty`)
-       );
+        throw new Error(
+          `Collection ${collectionName} does not exist or is empty`
+        );
       }
       const documents = querySnapshot.docs.map(doc => doc.data());
+      console.log('querySnapshot', documents);
       return documents;
     } catch (error) {
+      console.log('error', error);
       const { message } = error as FirebaseError;
-      return {error: message};
+      console.log('message', message)
+      return { error: message };
       // throw new Error(message);
     }
   }
@@ -127,7 +129,7 @@ class FirebaseService {
       return downloadURL;
     } catch (error) {
       const { message } = error as FirebaseError;
-      return {error: message};
+      return { error: message };
     }
   }
 }

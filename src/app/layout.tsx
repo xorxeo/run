@@ -2,11 +2,18 @@ import './global.css';
 
 import { ReactNode, Suspense } from 'react';
 import localFont from 'next/font/local';
-import { Inter, Orbitron,  Share_Tech_Mono, Nanum_Myeongjo, } from 'next/font/google';
+import {
+  Inter,
+  Orbitron,
+  Share_Tech_Mono,
+  Nanum_Myeongjo,
+} from 'next/font/google';
 
 import { Providers } from './providers';
 import { Navbar } from '@/components/Navbar';
 import { NavigationEvents } from '@/services/NavigationEvents';
+import Error from './error';
+import { ErrorBoundary } from 'next/dist/client/components/error-boundary';
 
 export const metadata = {
   title: 'Run App',
@@ -48,16 +55,21 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       data-theme="light"
       className={`${jura.className} s:text-xs sm:text-sm md:text-base lg:text-lg 2xl:text-2xl`}
     >
-      <body>
-        <Providers>
-          <Navbar />
-          {/* <Home /> */}
-          {children}
-          {/* <Suspense fallback={null}>
+      <head>
+        <body className=' w-full'>
+         
+          <Providers>
+            {/* <ErrorBoundary errorComponent={Error}> */}
+            <Navbar />
+            {/* <Home /> */}
+            {children}
+            {/* <Suspense fallback={null}>
             <NavigationEvents />
           </Suspense> */}
-        </Providers>
-      </body>
+            {/* </ErrorBoundary> */}
+          </Providers>
+        </body>
+      </head>
     </html>
   );
 }

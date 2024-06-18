@@ -39,7 +39,7 @@ export const PreviewEntitiesList = (props: PreviewEntitiesListProps) => {
     <div className="preview-entities-list-container flex flex-col w-full items-center">
       <h2 className="select-none">{title}</h2>
 
-      {typeof entities === 'object' &&
+      {entities.length > 0 &&
         isDistances(entities) &&
         entities.map(entity => (
           <div

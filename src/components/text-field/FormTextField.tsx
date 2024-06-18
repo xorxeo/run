@@ -5,7 +5,7 @@ import { InputErrorMessage } from './TextFieldErrorMessage';
 import { Box, MantineSize, MantineSizes, Sx, TextInput, createStyles } from '@mantine/core';
 
 export type FormTextFieldProps = {
-  inputSize: MantineSize;
+  inputSize?: MantineSize;
   control: Control<any>;
   label: string;
   name: string;

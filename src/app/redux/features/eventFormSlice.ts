@@ -6,15 +6,16 @@ import {
   createSlice,
 } from '@reduxjs/toolkit';
 
-import { EventUploadFile } from '../../../modules/EventForm/event-form.typings';
+import { Reducer } from 'react';
 import { RootState } from '@/app/redux/store';
+
+import { EventUploadFile } from '../../../modules/EventForm/event-form.typings';
 import {
   DistanceFormValues,
   EventFormValues,
 } from '../../../modules/EventForm/event-form.schema';
 import { SelectOptions } from '@/components/select/Select';
 import { DISTANCE_DEFAULT_VALUES } from '@/modules/EventForm/event-form.schema';
-import { Reducer } from 'react';
 
 export type EventFormInputValues = Omit<EventFormValues, 'rules'>;
 
@@ -48,6 +49,7 @@ export type InitialState = {
   logos: EventUploadFile[];
   storedPartnersSelectOptions: SelectOptions[];
   storedDistancesSelectOptions: SelectOptions[];
+ 
 };
 
 const initialState: InitialState = {
@@ -70,6 +72,7 @@ const initialState: InitialState = {
   logos: [],
   storedPartnersSelectOptions: [],
   storedDistancesSelectOptions: [],
+
 };
 
 export type EventFormActions = typeof eventFormSlice.caseReducers;
@@ -80,13 +83,14 @@ export const eventFormSlice = createSlice({
   name: 'eventFormSlice',
   initialState,
   reducers: {
+   
     resetDistanceFormAfterSubmit: (
       state,
       action: PayloadAction<DistanceFormValues>
     ) => {
       state.draftNewDistanceFormValues = action.payload;
     },
-    resetEventFormAfterSubmit: (state) => {
+    resetEventFormAfterSubmit: state => {
       state.eventFormValues = initialState.eventFormValues;
     },
 
@@ -95,7 +99,7 @@ export const eventFormSlice = createSlice({
     },
     deleteEvent: (state, action: PayloadAction<String>) => {
       state.storedEvents = [
-        ...state.storedEvents.filter((event) => event.id !== action.payload),
+        ...state.storedEvents.filter(event => event.id !== action.payload),
       ];
     },
 
@@ -117,17 +121,18 @@ export const eventFormSlice = createSlice({
     },
     deleteRule: (state, action: PayloadAction<String>) => {
       state.rules = [
-        ...state.rules.filter((rule) => rule.name !== action.payload),
+        ...state.rules.filter(rule => rule.name !== action.payload),
       ];
     },
     storeDistancesFromDatabase: (
       state,
       action: PayloadAction<DistanceFormValues[]>
     ) => {
-      state.distances.distancesFromDatabase = [...action.payload];
+      // console.log('action.payload', action.payload);
+      state.distances.distancesFromDatabase = action.payload;
     },
     setInitialFetched: (state, action: PayloadAction<boolean>) => {
-      state.distances.isInitialFetched = true
+      state.distances.isInitialFetched = true;
     },
     addNewDistance: (state, action: PayloadAction<DistanceFormValues>) => {
       state.distances.distancesFromDatabase.push(action.payload);
@@ -142,14 +147,14 @@ export const eventFormSlice = createSlice({
     deleteStoredDistanceById: (state, action: PayloadAction<String>) => {
       state.distances.distancesFromDatabase = [
         ...state.distances.distancesFromDatabase.filter(
-          (distance) => distance.id !== action.payload
+          distance => distance.id !== action.payload
         ),
       ];
     },
     storeEditedDistance: (state, action: PayloadAction<DistanceFormValues>) => {
       const editedDistanceIndex =
         state.distances.distancesFromDatabase.findIndex(
-          (distance) => distance.id === action.payload.id
+          distance => distance.id === action.payload.id
         );
 
       if (editedDistanceIndex != -1) {
@@ -165,7 +170,7 @@ export const eventFormSlice = createSlice({
     },
     deleteImage: (state, action: PayloadAction<String>) => {
       state.images = [
-        ...state.images.filter((image) => image.name !== action.payload),
+        ...state.images.filter(image => image.name !== action.payload),
       ];
     },
     addPartnerFromDatabase: (state, action: PayloadAction<PartnersType[]>) => {
@@ -180,14 +185,14 @@ export const eventFormSlice = createSlice({
     },
     deleteLogo: (state, action: PayloadAction<number>) => {
       state.logos = [
-        ...state.logos.filter((logo) => logo.index !== action.payload),
+        ...state.logos.filter(logo => logo.index !== action.payload),
       ];
       // TODO: delete logo from database
     },
     deletePartner: (state, action: PayloadAction<string>) => {
       state.partners.newPartners = [
         ...state.partners.newPartners.filter(
-          (partner) => partner.name !== action.payload
+          partner => partner.name !== action.payload
         ),
       ];
     },
@@ -224,7 +229,7 @@ export const {
   storeDistancesFromDatabase,
   setInitialFetched,
   deleteStoredDistanceById,
-
+ 
   // storedSelectDistancesFromDatabaseOptions,
 } = eventFormSlice.actions;
 
